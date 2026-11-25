@@ -1,0 +1,86 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Lensy brand</title>
+<style>
+@font-face{font-family:'Luckiest Guy';src:url(../node_modules/@fontsource/luckiest-guy/files/luckiest-guy-latin-400-normal.woff2)}
+@font-face{font-family:'Fredoka';font-weight:600;src:url(../node_modules/@fontsource/fredoka/files/fredoka-latin-600-normal.woff2)}
+html,body{margin:0;overflow:hidden;background:#000}
+.abs{position:absolute}
+.title{font-family:'Luckiest Guy';color:#FFF3DE;-webkit-text-stroke:22px #111;paint-order:stroke fill;text-shadow:0 14px 0 rgba(0,0,0,.45);line-height:.9;letter-spacing:4px;white-space:nowrap}
+.tag{font-family:'Fredoka';font-weight:600;color:#FFE7C4;white-space:nowrap}
+</style>
+<script src="../engine/assets.js"></script><script src="../engine/characters.js"></script>
+</head><body><div id="root"></div>
+<script>
+const C = Characters, A = Assets, K = '#111';
+const q = new URLSearchParams(location.search);
+const what = q.get('a') || 'logo';
+const BG = { green: ['#2F8A55', '#14482B'], cream: ['#FFF1DC', '#F6D3A8'], navy: ['#2D4C8F', '#152447'] };
+
+// simple line doodles of nature things, drawn at 100x100
+const DOODLES = [
+  `<path d="M20 80 C20 40 50 15 85 15 C85 50 60 80 20 80Z M20 80 L70 30"/>`,                                  // leaf
+  `<path d="M20 55 Q50 5 80 55 Z M42 55 L40 88 Q50 92 60 88 L58 55"/><circle cx="40" cy="38" r="5"/><circle cx="60" cy="32" r="4"/>`, // mushroom
+  `<path d="M55 50 m-6 0 a6 6 0 1 1 12 0 a12 12 0 1 1 -24 0 a18 18 0 1 1 36 0 a24 24 0 1 1 -48 0 M15 76 L88 76 Q92 66 82 64"/>`,   // snail
+  `<circle cx="30" cy="50" r="10"/><circle cx="52" cy="50" r="12"/><ellipse cx="78" cy="50" rx="15" ry="11"/><path d="M45 40 L35 20 M52 40 L52 18 M58 40 L68 20 M45 60 L35 80 M52 62 L52 84 M58 60 L68 80 M22 44 L8 30 M22 46 L10 40"/>`, // ant
+  `<ellipse cx="50" cy="56" rx="24" ry="30"/><path d="M50 26 L50 86 M38 22 L30 8 M62 22 L70 8 M26 46 L10 40 M26 62 L10 68 M74 46 L90 40 M74 62 L90 68"/>`, // beetle
+  `<path d="M50 85 C20 60 15 40 30 28 C40 20 50 28 50 36 C50 28 60 20 70 28 C85 40 80 60 50 85Z"/>`,          // heart-ish leaf? (butterfly wing)
+  `<circle cx="42" cy="42" r="24"/><path d="M60 60 L86 86"/>`,                                                  // tiny magnifier
+  `<path d="M50 15 C55 35 65 45 85 50 C65 55 55 65 50 85 C45 65 35 55 15 50 C35 45 45 35 50 15Z"/>`,          // sparkle
+  `<ellipse cx="38" cy="50" rx="22" ry="14" transform="rotate(-30 38 50)"/><ellipse cx="62" cy="50" rx="22" ry="14" transform="rotate(30 62 50)"/><path d="M50 30 L50 80"/>`, // butterfly
+  `<path d="M30 80 Q30 30 50 20 Q70 30 70 80 Z M30 55 L70 55 M35 40 L65 40"/>`,                                // shell
+];
+function doodleField(w, h, color, opacity, size, seed = 7) {
+  let s = seed; const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  let out = '';
+  const step = size * 1.55;
+  for (let y = -size; y < h + size; y += step) for (let x = -size; x < w + size; x += step) {
+    const d = DOODLES[Math.floor(rnd() * DOODLES.length)];
+    const jx = x + (rnd() - 0.5) * size * 0.7 + ((y / step) % 2) * step * 0.5, jy = y + (rnd() - 0.5) * size * 0.7;
+    out += `<g transform="translate(${jx} ${jy}) rotate(${(rnd() - 0.5) * 70}) scale(${size / 100 * (0.75 + rnd() * 0.5)}) translate(-50 -50)">${d}</g>`;
+  }
+  return `<svg width="${w}" height="${h}" class="abs" style="left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="${opacity}">${out}</g></svg>`;
+}
+const fit = (svg, w) => svg.replace('<svg ', `<svg style="width:${w}px;height:auto;display:block" `);
+
+function logo(theme) {
+  const [c1, c2] = BG[theme];
+  document.body.style.width = '800px'; document.body.style.height = '800px';
+  return `<div class="abs" style="left:0;top:0;width:800px;height:800px;overflow:hidden;background:radial-gradient(circle at 50% 40%, ${c1} 0%, ${c2} 100%)">
+    ${doodleField(800, 800, theme === 'cream' ? '#C98A4A' : '#fff', theme === 'cream' ? 0.22 : 0.1, 120, 3)}
+    <div class="abs" style="left:-6px;top:-40px;transform:rotate(-12deg);transform-origin:420px 420px;filter:drop-shadow(0 18px 18px rgba(0,0,0,.35))">${fit(C.lensy({ mood: 'happy', pose: 'idle', look: [0.1, 0.06] }), 820)}</div>
+  </div>`;
+}
+
+function banner() {
+  document.body.style.width = '2560px'; document.body.style.height = '1440px';
+  const [c1, c2] = BG.green;
+  return `<div class="abs" style="left:0;top:0;width:2560px;height:1440px;overflow:hidden;background:radial-gradient(ellipse at 50% 50%, ${c1} 0%, ${c2} 85%)">
+    ${doodleField(2560, 1440, '#fff', 0.1, 150, 11)}
+    <div class="abs" style="left:0;top:520px;width:2560px;height:400px;background:radial-gradient(ellipse at 50% 50%, rgba(0,0,0,.28) 0%, rgba(0,0,0,0) 60%)"></div>
+    <div class="abs title" style="left:610px;top:548px;font-size:118px;color:#FFB15C">hey!</div>
+    <div class="abs title" style="left:604px;top:648px;font-size:196px">i'm Lensy</div>
+    <div class="abs tag" style="left:618px;top:858px;font-size:52px">nature is weirder up close 🔍</div>
+    <div class="abs" style="left:1560px;top:470px;transform:rotate(10deg);filter:drop-shadow(0 18px 18px rgba(0,0,0,.4))">${fit(C.lensy({ mood: 'laugh', pose: 'cheer', t: 0.1 }), 330)}</div>
+  </div>`;
+}
+
+// banner with YouTube crop guides, for review only
+function bannerGuides() {
+  return banner() + `
+    <div class="abs" style="left:0;top:508px;width:2560px;height:423px;outline:6px dashed #FFD43B"></div>
+    <div class="abs" style="left:507px;top:508px;width:1546px;height:423px;outline:8px solid #FF3B5C"></div>
+    <div class="abs tag" style="left:40px;top:950px;font-size:40px;color:#FFD43B">desktop (2560×423)</div>
+    <div class="abs tag" style="left:520px;top:440px;font-size:40px;color:#FF3B5C">mobile / safe area (1546×423)</div>`;
+}
+
+function logoSheet() {
+  document.body.style.background = '#e9e4da';
+  const one = (t) => `<div style="display:inline-block;text-align:center;margin:20px 28px;font:600 28px Fredoka">
+    <img src="../out/brand/logo-${t}.png" style="width:300px;height:300px;border-radius:50%;display:block;margin-bottom:14px">
+    <img src="../out/brand/logo-${t}.png" style="width:48px;height:48px;border-radius:50%;vertical-align:middle"> ${t}</div>`;
+  return `<div style="padding:20px">${['green', 'cream', 'navy'].map(one).join('')}</div>`;
+}
+window.ready = (async () => { await document.fonts.ready; })();
+document.getElementById('root').innerHTML =
+  what === 'banner' ? banner() : what === 'logos' ? logoSheet() : what === 'guides' ? bannerGuides() : logo(q.get('theme') || 'green');
+</script></body></html>

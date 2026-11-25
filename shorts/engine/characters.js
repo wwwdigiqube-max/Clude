@@ -55,7 +55,7 @@
     return out;
   }
 
-  // ---------- 1. LUPO — the magnifying glass ----------
+  // ---------- LENSY — the magnifying glass (channel mascot) ----------
   // brand: warm orange ring, sky glass. Eyes look magnified behind the lens.
   function lupo({ mood = 'happy', look = [0, 0], blink = 0, pose = 'wave', t = 0 } = {}) {
     const ring = '#FF7A1A';
@@ -117,5 +117,5 @@
       <circle cx="200" cy="200" r="194" fill="none" stroke="${K}" stroke-width="8"/></svg>`;
   }
 
-  root.Characters = { lupo, bibi, avatar, handOpen };
+  root.Characters = { lensy: lupo, lupo, bibi, avatar, handOpen };
 })(typeof window !== 'undefined' ? window : globalThis);
