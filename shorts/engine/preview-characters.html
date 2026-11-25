@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'Luckiest Guy';src:url(../node_modules/@fontsource/luckiest-guy/files/luckiest-guy-latin-400-normal.woff2)}
+body{margin:0;background:#e9e4da;font-family:'Luckiest Guy';color:#222}
+.row{display:flex;gap:14px;padding:14px 24px;align-items:flex-end}
+.cell{width:250px;text-align:center;font-size:24px}.cell .c{height:330px;display:flex;align-items:flex-end;justify-content:center}.cell svg{max-height:320px;max-width:240px}
+h2{margin:18px 24px 0;font-size:44px}
+.ctx{display:flex;gap:24px;padding:10px 24px}.f{position:relative;width:405px;height:720px;overflow:hidden;border-radius:14px}
+.f img{width:100%;height:100%}.f .m{position:absolute}
+</style><script src="assets.js"></script><script src="characters.js"></script></head><body>
+<div id="out"></div>
+<script>
+const C=Characters, poses=[['wave','happy','Hi!'],['point','smirk','Pointing'],['shock','shock','Shocked'],['cheer','laugh','Laughing']];
+let h='';
+for (const [name,fn,bg,label] of [['LUPO','lupo','#FFE2C6','Option 1 — magnifier'],['BIBI','bibi','#E4DAFF','Option 2 — beetle']]) {
+  h+='<h2>'+label+' ("'+name+'")</h2><div class="row">';
+  for (const [pose,mood,l] of poses) h+='<div class="cell"><div class="c">'+C[fn]({pose,mood,look:[0.2,0.1],t:0.1})+'</div>'+l+'</div>';
+  h+='<div class="cell"><div class="c" style="align-items:center">'+C.avatar(fn,bg).replace('<svg ','<svg width="220" height="220" ')+'</div>Logo</div></div>';
+}
+h+='<h2>Inside a video</h2><div class="ctx">';
+h+='<div class="f"><img src="file:///tmp/claude-0/-home-user-Clude/2c79712e-f8ac-5899-a8bb-5777cfd9276d/scratchpad/ctx1.jpg"><div class="m" style="left:-10px;top:250px;width:200px">'+C.lupo({pose:'point',mood:'smirk',look:[0.6,0.4]})+'</div></div>';
+h+='<div class="f"><img src="file:///tmp/claude-0/-home-user-Clude/2c79712e-f8ac-5899-a8bb-5777cfd9276d/scratchpad/ctx1.jpg"><div class="m" style="left:0px;top:300px;width:190px">'+C.bibi({pose:'point',mood:'laugh',look:[0.6,0.4]})+'</div></div>';
+h+='<div class="f"><img src="file:///tmp/claude-0/-home-user-Clude/2c79712e-f8ac-5899-a8bb-5777cfd9276d/scratchpad/ctx2.jpg"><div class="m" style="left:250px;top:120px;width:160px;transform:rotate(-8deg)">'+C.lupo({pose:'shock',mood:'shock'})+'</div></div>';
+h+='<div class="f"><img src="file:///tmp/claude-0/-home-user-Clude/2c79712e-f8ac-5899-a8bb-5777cfd9276d/scratchpad/ctx2.jpg"><div class="m" style="left:260px;top:140px;width:150px;transform:rotate(-8deg)">'+C.bibi({pose:'shock',mood:'shock'})+'</div></div>';
+h+='</div>';
+document.getElementById('out').innerHTML=h;
+</script></body></html>
