@@ -1,0 +1,329 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>04 Bird scammers</title>
+<style>
+@font-face{font-family:'Luckiest Guy';src:url(../../node_modules/@fontsource/luckiest-guy/files/luckiest-guy-latin-400-normal.woff2)}
+html,body{margin:0;background:#000;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#000}
+.cap{position:absolute;left:50%;top:1330px;text-align:center;white-space:nowrap;font-family:'Luckiest Guy';font-size:96px;color:#fff;
+  -webkit-text-stroke:16px #000;paint-order:stroke fill;text-shadow:0 9px 0 rgba(0,0,0,.6);letter-spacing:2px;transform-origin:50% 50%}
+.lbl{position:absolute;font-family:'Luckiest Guy';font-size:54px;color:#111;background:#fff;border:7px solid #111;border-radius:18px;padding:8px 22px 2px;white-space:nowrap;box-shadow:0 8px 0 rgba(0,0,0,.35)}
+.comic{position:absolute;font-family:'Luckiest Guy';color:#FFE14D;-webkit-text-stroke:18px #111;paint-order:stroke fill;text-shadow:0 10px 0 rgba(0,0,0,.5);white-space:nowrap}
+</style>
+<script src="../../engine/assets.js"></script>
+<script src="../../engine/characters.js"></script>
+<script>document.write('<script src="audio/timing.js" onerror="void 0"><\/script>')</script>
+</head><body><div id="stage"></div>
+<script>
+const A = Assets, C = Characters, K = '#111';
+
+// ---------------- puppets ----------------
+const DRONGO = { img: 'img/drongo.png', w: 822, h: 1231, parts: [
+  { name: 'branch', clip: [[0,0],[300,0],[290,150],[300,560],[400,620],[470,700],[560,1231],[680,1190],[560,600],[600,300],[600,0],[822,0],[822,1231],[0,1231]] },
+  { name: 'bird', clip: [[300,0],[600,0],[600,300],[560,600],[680,1190],[560,1231],[470,700],[400,620],[300,560],[290,150]] } ] };
+const MKS = { img: 'img/meerkat_stand.png', w: 1145, h: 2075, parts: [{ name: 'body' }] };
+const MKF = { img: 'img/meerkat_scorpion.png', w: 1270, h: 1668, parts: [{ name: 'body' }] };
+const HAWK = { img: 'img/hawk.png', w: 1030, h: 721, parts: [{ name: 'body' }] };
+const FOXF = { img: 'img/fox_front.png', w: 520, h: 1135, parts: [{ name: 'body' }] };
+const FOXS = { img: 'img/fox_side.png', w: 1246, h: 819, parts: [{ name: 'body' }] };
+const KILL = { img: 'img/killdeer.png', w: 1528, h: 1180, parts: [{ name: 'body' }] };
+const CUCK = { img: 'img/cuckoo.png', w: 1485, h: 1500, parts: [
+  { name: 'chick', clip: [[0,0],[750,0],[760,280],[900,300],[1060,440],[1130,560],[1485,560],[1485,1500],[0,1500]] },
+  { name: 'mom', clip: [[750,0],[1485,0],[1485,560],[1130,560],[1060,440],[900,300],[760,280]] } ] };
+
+const eyeA = (o, x, y, w, extra = {}) => Object.assign({ svg: A.eyes(o), x, y, w }, extra);
+// a growing liar beak attached at (bx,by) in image px, k = thickness scale
+const beak = (bx, by, len, k = 0.45, rot = 0, color) => len <= 0 ? null : { svg: A.liarBeak(len, color), x: bx + ((len + 30) * k) / 2, y: by, w: (len + 30) * k, rot, origin: '0% 50%' };
+
+function drongo(H, E, t, o) {
+  const eyes = eyeA({ variant: o.eye || 'normal', look: o.look || [0.4, 0], blink: o.blink || 0 }, 405, 78, 175, { scale: o.eyePop ?? 1 });
+  const att = [eyes, beak(492, 80, o.nose || 0, 0.42), ...(o.attach || [])];
+  return H.puppet(DRONGO, { x: o.x, y: o.y, scale: o.scale ?? 0.8, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
+    parts: { branch: { tint: o.noBranch ? 'opacity(0)' : '' }, bird: { rot: o.birdRot || 0, dx: o.dx || 0, dy: o.dy || 0, attach: att } } });
+}
+function meerkat(H, E, t, o) {
+  return H.puppet(MKS, { x: o.x, y: o.y, scale: o.scale ?? 0.4, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
+    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.4, 0], blink: o.blink || 0 }, 650, 168, 240, { scale: o.eyePop ?? 1 }), ...(o.attach || [])] } } });
+}
+function meerkatFood(H, E, t, o) {
+  return H.puppet(MKF, { x: o.x, y: o.y, scale: o.scale ?? 0.6, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
+    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.5, 0.8], blink: o.blink || 0 }, 760, 345, 270, { scale: o.eyePop ?? 1 }), ...(o.attach || [])] } } });
+}
+function hawk(H, E, t, o) {
+  return H.puppet(HAWK, { x: o.x, y: o.y, scale: o.scale ?? 0.45, rot: o.rot || 0, flip: o.flip, blur: o.blur,
+    parts: { body: { attach: [eyeA({ variant: 'angry', look: [-0.6, 0.3] }, 318, 238, 130)] } } });
+}
+function foxF(H, E, t, o) {
+  return H.puppet(FOXF, { x: o.x, y: o.y, scale: o.scale ?? 0.6, rot: o.rot || 0,
+    parts: { body: { attach: [eyeA({ variant: o.eye || 'angry', look: o.look || [0, 0.6] }, 260, 285, 230), ...(o.attach || [])] } } });
+}
+function foxS(H, E, t, o) {
+  return H.puppet(FOXS, { x: o.x, y: o.y, scale: o.scale ?? 0.5, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
+    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.7, 0.2] }, 962, 150, 160), ...(o.attach || [])] } } });
+}
+function killdeer(H, E, t, o) {
+  return H.puppet(KILL, { x: o.x, y: o.y, scale: o.scale ?? 0.45, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
+    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.5, 0], blink: o.blink || 0 }, 1262, 178, 200, { scale: o.eyePop ?? 1 }), beak(1430, 232, o.nose || 0, 0.42), ...(o.attach || [])] } } });
+}
+function cuckoo(H, E, t, o) {
+  return H.puppet(CUCK, { x: o.x, y: o.y, scale: o.scale ?? 0.6, rot: o.rot || 0, sx: o.sx, sy: o.sy,
+    parts: { chick: { rot: o.chickRot || 0, attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.3, -0.3], blink: o.blink || 0 }, 555, 325, 230, { scale: o.eyePop ?? 1 }),
+                       beak(700, 210, o.nose || 0, 0.5, -38, '#2B2B2B'), ...(o.attach || [])] },
+             mom: { tint: o.momHide ? 'opacity(0)' : '', dx: o.momDx || 0, dy: o.momDy || 0, rot: o.momRot || 0,
+                    attach: o.momHide ? [] : [eyeA({ variant: o.momEye || 'normal', look: o.momLook || [-0.6, 0.4] }, 852, 98, 115), ...(o.momAttach || [])] } } });
+}
+const lensy = (H, x, y, w, o = {}) => H.sticker(C.lensy({ mood: o.mood || 'happy', pose: o.pose || 'point', look: o.look || [0.4, 0.1], t: o.t || 0 }), x, y, w, o);
+
+// ---------------- backgrounds & helpers ----------------
+const bgImg = (src, t, z = 1.0, dz = 0.012) => `<img src="img/${src}.jpg" style="position:absolute;left:${-540 * (z + dz * t - 1)}px;top:${-960 * (z + dz * t - 1)}px;width:${1080 * (z + dz * t)}px;height:${1920 * (z + dz * t)}px;object-fit:cover">`;
+function photoCam(src, IW, IH, cam, overlays, filter = 'saturate(1.15) contrast(1.06)') {
+  const s = 1920 / cam.h, cw = 1080 / s, ox = cam.cx - cw / 2, oy = cam.cy - cam.h / 2;
+  let h = `<img src="${src}" style="position:absolute;left:${-ox * s}px;top:${-oy * s}px;width:${IW * s}px;height:${IH * s}px;filter:${filter}">`;
+  for (const o of overlays) { if (!o || o.scale === 0) continue; h += window.H.sticker(o.svg, (o.x - ox) * s, (o.y - oy) * s, o.w * s, o); }
+  return h;
+}
+function lineupWall() {
+  let lines = '';
+  for (let i = 0; i < 14; i++) lines += `<div style="position:absolute;left:0;top:${180 + i * 85}px;width:1080px;height:${i % 2 ? 3 : 6}px;background:rgba(255,255,255,${i % 2 ? .25 : .45})"></div>
+    ${i % 2 ? '' : `<div style="position:absolute;left:24px;top:${150 + i * 85}px;font:28px 'Luckiest Guy';color:rgba(255,255,255,.6)">${(14 - i) * 10}</div>`}`;
+  return `<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%, #6E7C8F 0%, #46505F 70%, #2E3540 100%)"></div>${lines}`;
+}
+const label = (text, x, y, scale = 1, rot = -3, extra = '') => scale > 0 ? `<div class="lbl" style="${extra}left:${x}px;top:${y}px;transform:translate(-50%,-50%) rotate(${rot}deg) scale(${scale})">${text}</div>` : '';
+const stamp = (text, x, y, scale, rot = -8) => label(text, x, y, scale, rot, 'background:#E5202E;color:#fff;font-size:64px;');
+const comic = (text, x, y, size, scale = 1, rot = -8) => scale > 0 ? `<div class="comic" style="left:${x}px;top:${y}px;font-size:${size}px;transform:translate(-50%,-50%) rotate(${rot}deg) scale(${scale})">${text}</div>` : '';
+const arrowSvg = `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" overflow="visible"><path d="M10 20 Q100 0 160 80" fill="none" stroke="#111" stroke-width="22" stroke-linecap="round"/><path d="M10 20 Q100 0 160 80" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round"/><path d="M128 86 L168 96 L170 54" fill="none" stroke="#111" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><path d="M128 86 L168 96 L170 54" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const grow = (t, t0, max, d = 0.5) => max * E.out(E.prog(t, t0, d));
+
+// ---------------- script (design timing) ----------------
+const SEG = [
+  [0.1, 2.6, 'THESE THREE BIRDS ARE PROFESSIONAL *LIARS.*'],
+  [2.7, 4.3, 'NUMBER ONE: THE DRONGO.'],
+  [4.4, 8.6, 'IT FOLLOWS MEERKATS AROUND AND WARNS THEM WHEN HAWKS SHOW UP.'],
+  [8.7, 10.6, 'BUT WHEN A MEERKAT FINDS FOOD...'],
+  [10.7, 12.4, 'IT SCREAMS *HAWK!* ANYWAY.'],
+  [12.5, 16.5, 'THE MEERKAT DROPS ITS LUNCH AND RUNS — AND THE DRONGO *STEALS* IT.'],
+  [16.6, 18.2, 'NUMBER TWO: THE KILLDEER.'],
+  [18.3, 20.6, 'WHEN A FOX GETS NEAR ITS NEST,'],
+  [20.7, 23.9, 'IT FAKES A BROKEN WING, CRYING AND FLOPPING,'],
+  [24.0, 25.8, 'SO THE FOX FOLLOWS IT AWAY.'],
+  [25.9, 28.8, 'THEN — *MIRACLE* — IT FLIES OFF, PERFECTLY FINE.'],
+  [28.9, 30.5, 'NUMBER THREE: THE CUCKOO CHICK.'],
+  [30.6, 34.6, "IT HATCHES IN ANOTHER BIRD'S NEST, PUSHES OUT THE REAL EGGS,"],
+  [34.7, 37.3, 'THEN SCREAMS LIKE AN ENTIRE NEST OF BABIES,'],
+  [37.4, 41.0, 'SO ITS TINY FOSTER PARENTS WORK *OVERTIME* TO FEED IT.'],
+  [41.2, 45.0, 'MORAL OF THE STORY: NEVER *TRUST* A BIRD.'],
+];
+function buildCaptions() {
+  const caps = [];
+  for (const [t0, t1, text] of SEG) {
+    const raw = text.replace(/—/g, '').split(/\s+/).filter(Boolean), words = [];
+    for (let i = 0; i < raw.length; i++) {
+      if (raw[i].replace(/[^A-Z']/g, '').length <= 2 && i + 1 < raw.length) { words.push(raw[i] + ' ' + raw[i + 1]); i++; } else words.push(raw[i]);
+    }
+    const wt = words.map((w) => w.length + 2), tot = wt.reduce((a, b) => a + b, 0);
+    let t = t0;
+    words.forEach((w, i) => { const d = ((t1 - t0) * wt[i]) / tot; caps.push([t, t + d, w.replace(/\*/g, ''), { pop: w.includes('*') }]); t += d; });
+  }
+  return caps;
+}
+
+// shot boundaries = segment starts
+const S = SEG.map((s) => s[0]); S[0] = 0;
+const B = (i) => [S[i], i + 1 < S.length ? S[i + 1] : 46.0];
+
+window.VIDEO = {
+  duration: window.AUDIO_DURATION || 46, fps: 60, timeMap: window.TIMEMAP,
+  images: { a: DRONGO.img, b: MKS.img, c: MKF.img, d: HAWK.img, e: FOXF.img, f: FOXS.img, g: KILL.img, h: CUCK.img,
+            i: 'img/bg_kalahari.jpg', j: 'img/bg_reeds.jpg', k: 'img/bg_nest_blur.jpg', l: 'img/bg_twigs.jpg', m: 'img/src/killdeer_broken.jpg', n: 'img/src/bg_nest.jpg' },
+  captions: window.WORDCAPS || buildCaptions(),
+  shots: [
+    // 0 HOOK — the drongo's nose grows
+    { start: B(0)[0], end: B(0)[1], noPunch: true, bg: (t) => bgImg('bg_kalahari', t, 1.15),
+      draw: (t, E, H) => [
+        drongo(H, E, t, { x: 520, y: 1260, scale: 1.45, eye: t > 1.5 ? 'angry' : 'normal', look: [Math.sin(t * 2.6) > 0 ? 0.8 : -0.6, 0.1], blink: E.blinkAt(t, [0.9]),
+          nose: grow(t, 1.55, 520, 0.6), sy: E.breathe(t, 0.012) }),
+        comic('LIARS!', 540, 300, 170, E.spring(t, 1.75, 0.5), -6),
+      ] },
+    // 1 — #1 the drongo
+    { start: B(1)[0], end: B(1)[1], bg: (t) => bgImg('bg_kalahari', t + 3, 1.05),
+      draw: (t, E, H) => [
+        drongo(H, E, t, { x: 600, y: 860, scale: 0.95, eye: 'normal', look: [0.3, 0.3], eyePop: E.spring(t, 0.15, 0.5), blink: E.blinkAt(t, [1.2]), sy: E.breathe(t, 0.015) }),
+        label('DRONGO', 330, 360, E.pop(t, 0.35)), H.sticker(arrowSvg, 420, 450, 190, { scale: E.pop(t, 0.5), rot: 15 }),
+        H.sticker(A.badge(1), 130, 160, 170, { scale: E.spring(t, 0.05, 0.5) }),
+      ] },
+    // 2 — follows meerkats, warns about real hawks
+    { start: B(2)[0], end: B(2)[1], bg: (t) => bgImg('bg_kalahari', t + 5, 1.0),
+      camera: (t, E) => { const [x, y] = t > 2.0 && t < 2.4 ? E.shake(t, 8) : [0, 0]; return { x, y }; },
+      draw: (t, E, H) => {
+        const run = E.inn(E.prog(t, 2.7, 0.7)), hk = E.prog(t, 1.4, 1.8), scared = t > 2.15;
+        return [
+          hawk(H, E, t, { x: E.lerp(-300, 1400, hk), y: 330 + 60 * Math.sin(hk * 3), scale: 0.5, flip: true, rot: -8 }),
+          drongo(H, E, t, { x: 830, y: 760, scale: 0.5, look: t > 1.6 ? [-0.7, -0.6] : [-0.6, 0.6], eye: t > 1.6 ? 'shocked' : 'normal' }),
+          t > 1.85 && t < 3.6 ? H.sticker(A.bubble('HAWK!'), 760, 470, 300, { scale: E.spring(t, 1.85, 0.4), rot: 4 }) : '',
+          meerkat(H, E, t, { x: 290 - 900 * run, y: 1000, scale: 0.5, eye: scared ? 'shocked' : 'normal', look: scared ? [0.6, -0.8] : [0.6, 0], blur: 60 * run, sy: E.breathe(t, 0.015), flip: run > 0 }),
+          meerkat(H, E, t, { x: 560 - 1000 * run, y: 1080, scale: 0.42, eye: scared ? 'shocked' : 'normal', look: scared ? [0.6, -0.8] : [0.4, 0.2], blur: 60 * run, sy: E.breathe(t + 1, 0.015), flip: run > 0, blink: E.blinkAt(t, [0.8]) }),
+          label('BODYGUARD', 830, 520, t < 1.5 ? E.pop(t, 0.5) : 0, 4),
+        ];
+      } },
+    // 3 — a meerkat finds food; the drongo watches
+    { start: B(3)[0], end: B(3)[1], bg: (t) => bgImg('bg_kalahari', t + 9, 1.1),
+      draw: (t, E, H) => [
+        meerkatFood(H, E, t, { x: 470, y: 980, scale: 0.68, eye: 'heart', look: [0.5, 0.8], sy: E.breathe(t, 0.015) }),
+        H.sticker(A.targetCircle(), 470 + (990 - 635) * 0.68, 980 + (680 - 834) * 0.68, 250, { scale: E.pop(t, 0.4) }),
+        drongo(H, E, t, { x: 940, y: 420, scale: 0.42, eye: 'angry', look: [-0.8, 0.8], eyePop: E.spring(t, 0.9, 0.5) }),
+      ] },
+    // 4 — fake alarm: HAWK! (nose grows)
+    { start: B(4)[0], end: B(4)[1], bg: (t) => bgImg('bg_kalahari', t + 11, 1.1),
+      camera: (t, E) => { const [x, y] = t > 0.3 && t < 1.2 ? E.shake(t, 10) : [0, 0]; return { x, y }; },
+      draw: (t, E, H) => [
+        drongo(H, E, t, { x: 640, y: 760, scale: 0.85, eye: 'angry', look: [-0.5, 0.4], nose: grow(t, 0.5, 380, 0.5) }),
+        H.sticker(A.bubble('HAWK!'), 360, 330, 420, { scale: E.spring(t, 0.15, 0.4), rot: -5 }),
+        meerkatFood(H, E, t, { x: 230, y: 1210, scale: 0.42, eye: 'shocked', look: [0.4, -0.8], sy: 1 + 0.03 * Math.sin(t * 40) }),
+        comic('?', 900, 300, 160, E.pop(t, 0.9), 10),
+      ] },
+    // 5 — meerkat drops lunch and runs, drongo steals it
+    { start: B(5)[0], end: B(5)[1], bg: (t) => bgImg('bg_kalahari', t + 13, 1.1),
+      draw: (t, E, H) => {
+        const run = E.inn(E.prog(t, 0.25, 0.6));
+        const fall = E.prog(t, 0.25, 0.45), bp = E.prog(t, 0.7, 0.4), bounce = Math.sin(bp * Math.PI) * (1 - bp);
+        const fx0 = 711, fy0 = 875, fx = E.lerp(fx0, 560, fall), fy = fy0 + (1130 - fy0) * fall * fall - 90 * bounce;
+        const swoop = E.inOut(E.prog(t, 1.4, 0.55)), grabbed = t > 1.95;
+        const items = [];
+        if (t < 0.25) items.push(meerkatFood(H, E, t, { x: 470, y: 980, scale: 0.68, eye: 'shocked', look: [0.4, -0.8] }));
+        else items.push(meerkat(H, E, t, { x: 420 - 1100 * run, y: 960, scale: 0.55, eye: 'shocked', look: [-0.6, -0.6], blur: 80, flip: true }));
+        if (!grabbed) items.push(H.sticker(A.scorpion(), fx, fy, 240, { rot: 200 * fall + 20 * Math.sin(t * 20) * (t > 1.1 ? 1 : 0) }));
+        const tx = 600, ty = 1010;
+        const dx = E.lerp(1300, tx, swoop), dy = E.lerp(150, ty, swoop);
+        if (t > 1.4) items.push(drongo(H, E, t, { x: grabbed ? tx : dx, y: grabbed ? ty + 6 * Math.sin(t * 12) : dy, scale: 0.8, noBranch: true, blur: swoop > 0 && swoop < 1 ? 40 : 0,
+          eye: grabbed ? 'heart' : 'angry', look: [-0.6, 0.6], rot: grabbed ? -6 : -25 * (1 - swoop),
+          attach: grabbed ? [{ svg: A.scorpion(), x: 610, y: 120, w: 300, rot: 70 + 8 * Math.sin(t * 14) }] : [] }));
+        items.push(stamp('STOLEN!', 540, 440, E.spring(t, 2.4, 0.5), -10));
+        return items;
+      } },
+    // 6 — #2 the killdeer at its nest (real nest photo)
+    { start: B(6)[0], end: B(6)[1], bg: (t, E) => photoCam('img/src/bg_nest.jpg', 1920, 2560, { cx: 900, cy: 1350 - 20 * t, h: 1650 - 60 * t }, []),
+      draw: (t, E, H) => [
+        killdeer(H, E, t, { x: 620, y: 560, scale: 0.5, eyePop: E.spring(t, 0.25, 0.5), look: [-0.2, 0.7], blink: E.blinkAt(t, [1.2]), sy: E.breathe(t, 0.015) }),
+        label('KILLDEER', 360, 260, E.pop(t, 0.4)), H.sticker(A.badge(2), 130, 160, 170, { scale: E.spring(t, 0.05, 0.5) }),
+        label('NEST', 540, 1170, E.pop(t, 0.8), 3),
+      ] },
+    // 7 — a fox gets near the nest
+    { start: B(7)[0], end: B(7)[1], bg: (t, E) => photoCam('img/src/bg_nest.jpg', 1920, 2560, { cx: 900, cy: 1300, h: 1550 }, []),
+      camera: (t, E) => ({ zoom: 1 + 0.04 * t }),
+      draw: (t, E, H) => {
+        const near = E.inOut(E.prog(t, 0, 2.0));
+        return [
+          foxF(H, E, t, { x: 560, y: E.lerp(560, 640, near), scale: E.lerp(0.35, 0.85, near), eye: 'angry', look: [0, 0.8] }),
+          H.sticker(A.targetCircle(), 560, 1060, 520, { scale: E.pop(t, 0.6) }),
+          killdeer(H, E, t, { x: 900, y: 300, scale: 0.3, eye: 'shocked', look: [-0.6, 0.5], flip: true }),
+          H.sticker(A.exclaim(), 960, 140, 50, { scale: E.pop(t, 0.9) }),
+        ];
+      } },
+    // 8 — the fake broken wing (REAL photo of the act)
+    { start: B(8)[0], end: B(8)[1], bg: () => '',
+      camera: (t, E) => ({ rot: 0 }),
+      draw: (t, E, H) => {
+        const flop = 1.5 * Math.sin(t * 11);
+        const tears = [];
+        for (let k = 0; k < 3; k++) { const p = ((t * 1.4 + k / 3) % 1); tears.push({ svg: A.sweat(), x: 1000 - 10 * k, y: 460 + 140 * p, w: 34, opacity: 1 - p }); }
+        return [
+          `<div style="position:absolute;inset:0;transform:rotate(${flop}deg) scale(1.04);transform-origin:50% 40%">` +
+          photoCam('img/src/killdeer_broken.jpg', 1920, 1280, { cx: 1130, cy: 540, h: 1000 - 80 * E.inOut(t / 3.2) }, [
+            { svg: A.eyes({ variant: 'sad', look: [-0.3, 0.5], blink: E.blinkAt(t, [2.6]) }), x: 1052, y: 425, w: 150 },
+            ...tears,
+          ]) + `</div>`,
+          comic('OUCH!', 330, 380, 130, E.pop(t, 0.5) * (1 + 0.05 * Math.sin(t * 20)), -10),
+          label('*FAKE*', 820, 1130, E.spring(t, 1.4, 0.5), 8, 'background:#E5202E;color:#fff;').replace(/\*/g, ''),
+          lensy(H, 210, 1110, 250, { scale: E.spring(t, 2.0, 0.5), pose: 'cheer', mood: 'laugh', t }),
+          H.sticker(A.trophy(), 210, 830, 160, { scale: E.spring(t, 2.25, 0.5), rot: -8 }),
+          label('BEST ACTOR', 300, 700, E.pop(t, 2.4), -6),
+        ];
+      } },
+    // 9 — the fox follows it away
+    { start: B(9)[0], end: B(9)[1], bg: (t) => `<div style="position:absolute;inset:0;transform:translateX(${-40 * t}px)">${bgImg('bg_twigs', 0, 1.1, 0)}</div>`,
+      draw: (t, E, H) => [
+        killdeer(H, E, t, { x: 690 + 40 * t, y: 860 + 15 * Math.abs(Math.sin(t * 7)), scale: 0.4, rot: 10 + 8 * Math.sin(t * 7), eye: 'sad', look: [0.6, 0.6],
+          attach: [{ svg: A.sweat(), x: 1240, y: 300 + 50 * ((t * 1.5) % 1), w: 70 }] }),
+        foxS(H, E, t, { x: 180 + 90 * t, y: 1060, scale: 0.55, eye: 'normal', look: [0.9, -0.2], sy: 1 + 0.02 * Math.sin(t * 12) }),
+        comic('FOLLOW ME...', 620, 520, 80, E.pop(t, 0.4), 4),
+      ] },
+    // 10 — miracle! flies off perfectly fine
+    { start: B(10)[0], end: B(10)[1], bg: (t) => bgImg('bg_twigs', 0, 1.1, 0),
+      draw: (t, E, H) => {
+        const fly = E.inn(E.prog(t, 1.05, 0.55));
+        const items = [
+          foxS(H, E, t, { x: 330, y: 1060, scale: 0.55, eye: t > 1.3 ? 'shocked' : 'normal', look: t > 1.3 ? [0.5, -0.8] : [0.9, -0.2] }),
+          killdeer(H, E, t, { x: 760 + 700 * fly, y: 860 - 1100 * fly, scale: 0.4, rot: -20 * fly, eye: 'happy' === 'x' ? 'normal' : 'normal', look: [0.6, -0.5], blur: 60 * fly,
+            attach: [{ svg: A.halo(), x: 1260, y: 20, w: 300, scale: E.spring(t, 0.25, 0.5), rot: -8 + 4 * Math.sin(t * 6) }] }),
+        ];
+        if (t > 0.35 && t < 1.2) for (let k = 0; k < 5; k++) items.push(H.sticker(A.sparkle(), [620, 900, 980, 700, 850][k], [700, 640, 860, 980, 1000][k], 60, { scale: E.pop(t, 0.4 + k * 0.08) * (0.8 + 0.2 * Math.sin(t * 12 + k)), rot: t * 90 }));
+        if (fly > 0 && fly < 1) items.push(H.sticker(A.speedLines(), 760 + 700 * fly - 200, 860 - 1100 * fly + 160, 260, { rot: 125 }));
+        items.push(comic('MIRACLE!', 620, 420, 120, t < 1.1 ? E.pop(t, 0.2) : 0, -6));
+        items.push(comic('?', 380, 640, 220, E.spring(t, 1.5, 0.5), -10));
+        return items;
+      } },
+    // 11 — #3 the cuckoo chick
+    { start: B(11)[0], end: B(11)[1], bg: (t) => bgImg('bg_reeds', t + 29, 1.05),
+      draw: (t, E, H) => [
+        cuckoo(H, E, t, { x: 560, y: 880, scale: 0.68, eyePop: E.spring(t, 0.25, 0.5), look: [0.4, -0.5], blink: E.blinkAt(t, [1.2]), sy: E.breathe(t, 0.015) }),
+        label('CUCKOO CHICK', 380, 330, E.pop(t, 0.35)), H.sticker(A.badge(3), 130, 160, 170, { scale: E.spring(t, 0.05, 0.5) }),
+      ] },
+    // 12 — pushes out the real eggs
+    { start: B(12)[0], end: B(12)[1], bg: (t) => bgImg('bg_reeds', t + 30, 1.05),
+      draw: (t, E, H) => {
+        const sc = 0.68, X = 560, Y = 880, toS = (x, y) => [X + (x - 742) * sc, Y + (y - 750) * sc];
+        const eggs = [[330, 870, 0.9, 1], [470, 905, 1.7, 2], [1060, 880, 2.5, 3]];
+        const items = [];
+        let push = 0;
+        eggs.forEach(([ex, ey, t0, sd]) => {
+          const p = E.prog(t, t0, 0.8);
+          if (t > t0 - 0.15 && t < t0 + 0.15) push = Math.sin((t - t0 + 0.15) / 0.3 * Math.PI);
+          const [sx, sy] = toS(ex, ey);
+          const dir = ex < 742 ? -1 : 1;
+          if (p < 1) items.push(H.sticker(A.egg(sd), sx + dir * 500 * p, sy - 260 * Math.sin(p * Math.PI) + 700 * p * p, 85, { rot: dir * 540 * p, opacity: 1 }));
+        });
+        items.unshift(cuckoo(H, E, t, { x: X, y: Y, scale: sc, eye: 'angry', look: [-0.6, 0.6], chickRot: -6 * push, momHide: true }));
+        items.push(lensy(H, 880, 1130, 230, { scale: E.spring(t, 2.9, 0.5), mood: 'shock', pose: 'shock', look: [-0.6, -0.5], rot: 8 }));
+        return items;
+      } },
+    // 13 — screams like an entire nest of babies
+    { start: B(13)[0], end: B(13)[1], bg: (t) => bgImg('bg_reeds', t + 34, 1.1),
+      camera: (t, E) => { const [x, y] = E.shake(t, 9, 17); return { x, y, zoom: 1.05 }; },
+      draw: (t, E, H) => {
+        const items = [cuckoo(H, E, t, { x: 560, y: 960, scale: 0.68, eye: 'shocked', look: [0.3, -0.7], momHide: true, sy: 1 + 0.025 * Math.sin(t * 30) })];
+        const bx = 560 + (720 - 742) * 0.68, by = 960 + (200 - 750) * 0.68;
+        items.push(H.sticker(A.soundWaves(), bx + 40, by - 60, 380 + 40 * Math.sin(t * 18), { rot: 25, shadow: false }));
+        for (let k = 0; k < 10; k++) {
+          const a = -Math.PI / 2 + (k - 4.5) * 0.3, r = 360 + 30 * (k % 2);
+          items.push(H.sticker(A.babyBird(), bx + Math.cos(a) * r + 40, by + 140 + Math.sin(a) * r * 0.9, 95, { scale: E.pop(t, 0.15 + k * 0.08), rot: (k - 4.5) * 8 + 6 * Math.sin(t * 25 + k) }));
+        }
+        items.push(comic('×10', 880, 1100, 130, E.pop(t, 1.1), 8));
+        return items;
+      } },
+    // 14 — tiny foster parents work overtime
+    { start: B(14)[0], end: B(14)[1], bg: (t) => bgImg('bg_reeds', t + 37, 1.05),
+      draw: (t, E, H) => {
+        // mom shuttles: out to the right and back, 3 trips
+        const cyc = t < 0.5 ? 0 : ((t - 0.5) % 1.0) / 1.0;
+        const away = t < 0.5 ? 0 : Math.sin(cyc * Math.PI);
+        const sweats = [];
+        for (let k = 0; k < 2; k++) { const p = ((t * 1.8 + k / 2) % 1); sweats.push({ svg: A.sweat(), x: 960 + 40 * k, y: 40 + 80 * p, w: 50, opacity: 1 - p }); }
+        return [
+          cuckoo(H, E, t, { x: 520, y: 900, scale: 0.68, eye: 'happy' === 'x' ? 'normal' : 'normal', look: [0.6, -0.6], momDx: 1300 * away, momDy: -200 * away, momRot: -15 * away,
+            momEye: 'shocked', momLook: [-0.6, 0.3], momAttach: sweats }),
+          label('FOSTER MOM', 820, 330, E.pop(t, 0.2), 4),
+          stamp('OVERTIME!', 540, 1180, E.spring(t, 1.6, 0.5), -8),
+        ];
+      } },
+    // 15 — moral: never trust a bird (back to the line-up)
+    { start: B(15)[0], end: B(15)[1], bg: () => lineupWall(),
+      draw: (t, E, H) => [
+        drongo(H, E, t, { x: 210, y: 760, scale: 0.6, noBranch: true, eye: 'angry', look: [0.3, 0.3], nose: grow(t, 0.4, 330, 0.4) }),
+        killdeer(H, E, t, { x: 560, y: 640, scale: 0.42, eye: 'angry', look: [0.3, 0.3], nose: grow(t, 0.6, 600, 0.4) }),
+        cuckoo(H, E, t, { x: 840, y: 860, scale: 0.42, eye: 'angry', look: [-0.3, 0.3], momHide: true, nose: grow(t, 0.8, 420, 0.4) }),
+        lensy(H, 540, 1170, 300, { scale: E.spring(t, 0.15, 0.5), mood: 'smirk', pose: 'point', look: [0.5, -0.7] }),
+      ] },
+  ],
+};
+</script>
+<script src="../../engine/stage.js"></script>
+</body></html>

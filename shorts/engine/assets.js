@@ -364,7 +364,74 @@
       <path d="M0 -15 L0 -27 M-6 -22 L0 -27 L6 -22" stroke="${K}" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`;
   }
 
-  root.Assets = { eyes, hand, strawHat, cowbell, drop, sparkle, shield, spear, ladybugCartoon, snowflake, thermometer, cactus, bubble, speedLines,
+  // Pinocchio beak: grows to the right from its base (x=0, y=40). len in px of the viewBox (0..600)
+  function liarBeak(len = 300, color = '#2B2B2B') {
+    const L = Math.max(20, len);
+    return `<svg viewBox="0 0 ${L + 30} 80" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M0 14 L${L} 36 Q${L + 18} 40 ${L} 44 L0 66 Z" fill="${color}" stroke="${K}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M10 26 L${L * 0.8} 37" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".45"/></svg>`;
+  }
+
+  function trophy() {
+    return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" overflow="visible"><g stroke="${K}" stroke-width="${SW}" stroke-linejoin="round">
+      <path d="M48 40 C10 40 10 100 60 110" fill="none" stroke-width="14"/><path d="M152 40 C190 40 190 100 140 110" fill="none" stroke-width="14"/>
+      <path d="M44 20 H156 C156 110 130 140 100 146 C70 140 44 110 44 20Z" fill="#FFC928"/>
+      <rect x="86" y="144" width="28" height="36" fill="#E5A800"/><rect x="50" y="178" width="100" height="30" rx="6" fill="#7A4A26"/>
+      <rect x="62" y="186" width="76" height="14" rx="3" fill="#FFE07A" stroke-width="4"/></g>
+      <path d="M100 42 L108 64 L131 64 L113 78 L120 100 L100 87 L80 100 L87 78 L69 64 L92 64Z" fill="#fff" stroke="${K}" stroke-width="4"/>
+      <path d="M58 32 C58 80 66 104 84 120" stroke="#FFF1B0" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`;
+  }
+
+  function halo() {
+    return `<svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <ellipse cx="100" cy="35" rx="88" ry="24" fill="none" stroke="${K}" stroke-width="26"/>
+      <ellipse cx="100" cy="35" rx="88" ry="24" fill="none" stroke="#FFE24A" stroke-width="14"/>
+      <ellipse cx="80" cy="16" rx="26" ry="5" fill="#fff" opacity=".8"/></svg>`;
+  }
+
+  function egg(seed = 1) {
+    let sp = '';
+    let s = seed * 97;
+    const r = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    for (let i = 0; i < 14; i++) sp += `<ellipse cx="${30 + r() * 60}" cy="${30 + r() * 80}" rx="${3 + r() * 6}" ry="${2 + r() * 5}" fill="#4F5B3A" opacity=".8"/>`;
+    return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M60 6 C100 6 112 70 112 92 A52 52 0 0 1 8 92 C8 70 20 6 60 6Z" fill="#CFE3C9" stroke="${K}" stroke-width="${SW}"/>${sp}
+      <ellipse cx="40" cy="50" rx="10" ry="18" fill="#fff" opacity=".7"/></svg>`;
+  }
+
+  // tiny screaming baby bird head (for "an entire nest of babies")
+  function babyBird() {
+    return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <circle cx="60" cy="70" r="40" fill="#C9B79C" stroke="${K}" stroke-width="7"/>
+      <path d="M36 54 L60 4 L84 54 Z" fill="#FF7A1A" stroke="${K}" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M44 52 L60 18 L76 52Z" fill="#E8282E"/>
+      <circle cx="40" cy="74" r="9" fill="#fff" stroke="${K}" stroke-width="4"/><circle cx="80" cy="74" r="9" fill="#fff" stroke="${K}" stroke-width="4"/>
+      <circle cx="40" cy="76" r="4" fill="${K}"/><circle cx="80" cy="76" r="4" fill="${K}"/></svg>`;
+  }
+
+  function soundWaves() {
+    const arc = (r, o) => `<path d="M${-r * 0.7} ${-r * 0.7} A${r} ${r} 0 0 1 ${r * 0.7} ${-r * 0.7}" fill="none" stroke-linecap="round" opacity="${o}"/>`;
+    return `<svg viewBox="-160 -170 320 180" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <g stroke="${K}" stroke-width="20">${arc(60, 1)}${arc(105, 1)}${arc(150, 1)}</g><g stroke="#fff" stroke-width="10">${arc(60, 1)}${arc(105, 1)}${arc(150, 1)}</g></svg>`;
+  }
+
+  function scorpion() {
+    let legs = '';
+    for (let i = 0; i < 4; i++) legs += `<path d="M${70 + i * 18} 92 q-14 18 -30 22"/><path d="M${70 + i * 18} 108 q-6 20 -18 30" transform="translate(${60 - i * 4} 0) scale(-1 1) translate(${-140 - i * 36} 0)"/>`;
+    return `<svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <g fill="none" stroke="${K}" stroke-width="7" stroke-linecap="round">${legs}</g>
+      <g fill="#E8A23A" stroke="${K}" stroke-width="7" stroke-linejoin="round">
+        <path d="M150 96 C190 96 210 60 196 34 C188 18 170 20 172 36"/>
+        <circle cx="172" cy="34" r="10"/>
+        <ellipse cx="120" cy="100" rx="44" ry="24"/>
+        <ellipse cx="160" cy="98" rx="16" ry="13"/><ellipse cx="182" cy="80" rx="13" ry="11"/>
+        <path d="M80 92 L44 70 M80 108 L44 128" stroke-width="12"/>
+        <path d="M44 70 C20 52 14 80 30 80 C18 86 30 98 44 88Z"/><path d="M44 128 C20 146 14 118 30 118 C18 112 30 100 44 110Z"/></g>
+      <path d="M166 40 L160 22" stroke="${K}" stroke-width="6" stroke-linecap="round"/></svg>`;
+  }
+
+  root.Assets = { scorpion, eyes, hand, strawHat, cowbell, drop, sparkle, shield, spear, ladybugCartoon, snowflake, thermometer, cactus, bubble, speedLines,
     fightCloud, star, angerVein, mouth, targetCircle, sweat, exclaim,
-    anemone, glove, poison, iconDisc, plus, scissors, sunglasses, infinity, warning, crack, sign, badge, stinger };
+    anemone, glove, poison, iconDisc, plus, scissors, sunglasses, infinity, warning, crack, sign, badge, stinger,
+    liarBeak, trophy, halo, egg, babyBird, soundWaves };
 })(typeof window !== 'undefined' ? window : globalThis);
