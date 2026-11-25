@@ -7,7 +7,7 @@
   // ---------- EYES ----------
   // variant: normal | shocked | angry | heart | sad
   // look: [-1..1, -1..1] pupil direction; blink: 0 open .. 1 closed
-  function eyes({ variant = 'normal', look = [0, 0], blink = 0, beat = 0, white = '#fff' } = {}) {
+  function eyes({ variant = 'normal', look = [0, 0], blink = 0, beat = 0, white = '#fff', mode = 'pair' } = {}) {
     const one = (cx, side) => {
       const cy = 100;
       if (variant === 'heart') {
@@ -48,6 +48,9 @@
           <circle cx="${px - pr * 0.35}" cy="${py - pr * 0.38}" r="${pr * 0.3}" fill="#fff"/>
         </g>${clip ? `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${K}" stroke-width="${SW}" ${cp}/>` : ''}${brow}</g>`;
     };
+    // mode 'one': a single eye (exact profile). mode '3q': near eye centred at x=88, far eye smaller behind it to the right.
+    if (mode === 'one') return `<svg viewBox="0 -10 176 210" xmlns="http://www.w3.org/2000/svg" overflow="visible">${one(88, 'R')}</svg>`;
+    if (mode === '3q') return `<svg viewBox="0 -10 176 210" xmlns="http://www.w3.org/2000/svg" overflow="visible"><g transform="translate(118 18) scale(0.82)">${one(88, 'R')}</g>${one(88, 'L')}</svg>`;
     return `<svg viewBox="0 -10 320 210" xmlns="http://www.w3.org/2000/svg" overflow="visible">${one(88, 'L')}${one(232, 'R')}</svg>`;
   }
 
