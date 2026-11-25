@@ -274,17 +274,17 @@ window.VIDEO = {
     // 10 — miracle! flies off perfectly fine
     { start: B(10)[0], end: B(10)[1], bg: (t) => bgImg('bg_twigs', 0, 1.1, 0),
       draw: (t, E, H) => {
-        const fly = E.inn(E.prog(t, 1.05, 0.55));
+        const fly = E.inn(E.prog(t, 1.45, 0.5));
         const items = [
           H.shadow(370, 1270, 600), H.shadow(760 + 700 * fly, 1110, 330 * (1 - fly)),
-          foxS(H, E, t, { x: 330, y: 1060, scale: 0.55, eye: t > 1.3 ? 'shocked' : 'normal', look: t > 1.3 ? [0.5, -0.8] : [0.9, -0.2] }),
+          foxS(H, E, t, { x: 330, y: 1060, scale: 0.55, eye: t > 1.6 ? 'shocked' : 'normal', look: t > 1.6 ? [0.5, -0.8] : [0.9, -0.2] }),
           killdeer(H, E, t, { x: 760 + 700 * fly, y: 860 - 1100 * fly, scale: 0.4, rot: -20 * fly, eye: 'happy' === 'x' ? 'normal' : 'normal', look: [0.6, -0.5], blur: 60 * fly,
-            attach: [{ svg: A.halo(), x: 1200, y: 20, w: 300, scale: E.spring(t, 0.25, 0.5), rot: -8 + 4 * Math.sin(t * 6) }] }),
+            attach: [{ svg: A.halo(), x: 1200, y: 20, w: 300, scale: E.spring(t, 0.6, 0.5), rot: -8 + 4 * Math.sin(t * 6) }] }),
         ];
-        if (t > 0.35 && t < 1.2) for (let k = 0; k < 5; k++) items.push(H.sticker(A.sparkle(), [620, 900, 980, 700, 850][k], [700, 640, 860, 980, 1000][k], 60, { scale: E.pop(t, 0.4 + k * 0.08) * (0.8 + 0.2 * Math.sin(t * 12 + k)), rot: t * 90 }));
+        if (t > 0.65 && t < 1.5) for (let k = 0; k < 5; k++) items.push(H.sticker(A.sparkle(), [620, 900, 980, 700, 850][k], [700, 640, 860, 980, 1000][k], 60, { scale: E.pop(t, 0.7 + k * 0.08) * (0.8 + 0.2 * Math.sin(t * 12 + k)), rot: t * 90 }));
         if (fly > 0 && fly < 1) items.push(H.sticker(A.speedLines(), 760 + 700 * fly - 200, 860 - 1100 * fly + 160, 260, { rot: 125 }));
-        items.push(comic('MIRACLE!', 620, 420, 120, t < 1.1 ? E.pop(t, 0.2) : 0, -6));
-        items.push(comic('?', 380, 640, 220, E.spring(t, 1.5, 0.5), -10));
+        items.push(comic('MIRACLE!', 620, 420, 120, t < 1.5 ? E.pop(t, 0.8) : 0, -6));
+        items.push(comic('?', 380, 640, 220, E.spring(t, 1.95, 0.5), -10));
         return items;
       } },
     // 11 — #3 the cuckoo chick
