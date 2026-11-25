@@ -11,6 +11,7 @@ html,body{margin:0;background:#000;overflow:hidden}
 </style>
 <script src="../../engine/assets.js"></script>
 <script src="../../engine/characters.js"></script>
+<script src="audio/timing.js"></script>
 </head><body><div id="stage"></div>
 <script>
 const A = Assets, C = Characters, K = '#111';
@@ -160,9 +161,9 @@ function buildCaptions() {
 
 // ---------------- shots ----------------
 window.VIDEO = {
-  duration: 48, fps: 60,
+  duration: window.AUDIO_DURATION || 48, fps: 60, timeMap: window.TIMEMAP,
   images: { w: 'img/whip.png', o: 'img/bg_ocean.jpg', s: 'img/bg_surface.jpg', a: CRAB.img, b: OCTJ.img, c: OCTB.img, d: GLAU.img, e: MOW.img, f: FISHF.img, g: FISHS.img, h: 'img/src/crab_real.jpg', i: 'img/bg_seabed.jpg' },
-  captions: buildCaptions(),
+  captions: window.WORDCAPS || buildCaptions(),
   shots: [
     // A — the line-up: three thieves
     { start: 0, end: 4.2, noPunch: true, bg: () => lineupWall(),

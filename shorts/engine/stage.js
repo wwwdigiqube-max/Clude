@@ -75,9 +75,19 @@
   })();
 
   const stage = document.getElementById('stage');
-  window.renderAt = function (t) {
+  // optional time-warp: VIDEO.timeMap = [[audioT, designT], ...] maps narration time to the animation's design time
+  function toDesign(t, tm) {
+    if (!tm) return t;
+    for (let i = 0; i < tm.length - 1; i++) {
+      const [a0, d0] = tm[i], [a1, d1] = tm[i + 1];
+      if (t < a1 || i === tm.length - 2) return d0 + ((t - a0) * (d1 - d0)) / (a1 - a0);
+    }
+    return t;
+  }
+  window.renderAt = function (tAudio) {
     fid = 0;
     const V = window.VIDEO;
+    const t = toDesign(tAudio, V.timeMap);
     const sh = V.shots.find((s) => t >= s.start && t < s.end) || V.shots[V.shots.length - 1];
     const lt = t - sh.start;
     const cam = sh.camera ? sh.camera(lt, E) : {};
@@ -89,9 +99,10 @@
     html += `</div>`;
     html += (sh.post ? sh.post(lt, E, Hh) : []).join('');
     html += `<div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(0,0,0,.32) 100%)"></div>`;
-    const cap = V.captions.find((c) => t >= c[0] && t < c[1]);
+    const ct = V.timeMap ? tAudio : t;
+    const cap = V.captions.find((c) => ct >= c[0] && ct < c[1]);
     if (cap) {
-      const p = E.back(E.prog(t, cap[0], 0.12));
+      const p = E.back(E.prog(ct, cap[0], 0.12));
       const big = cap[3] && cap[3].pop ? 1.12 : 1;
       html += `<div class="cap" style="transform:translateX(-50%) scale(${(0.7 + 0.3 * p) * big})">${cap[2]}</div>`;
     }
