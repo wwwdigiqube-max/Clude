@@ -59,6 +59,8 @@
       }
       return `${defs}<div style="position:absolute;left:${p.x - anchor[0]}px;top:${p.y - anchor[1]}px;width:${w}px;height:${h}px;transform-origin:${anchor[0]}px ${anchor[1]}px;transform:rotate(${p.rot || 0}deg) scale(${(p.flip ? -1 : 1) * sc * (p.sx ?? 1)},${sc * (p.sy ?? 1)});opacity:${p.opacity ?? 1};${filter}">${inner}</div>`;
     },
+    // soft contact shadow on the ground
+    shadow(x, y, w, a = 0.35) { return `<div style="position:absolute;left:${x - w / 2}px;top:${y - w * 0.09}px;width:${w}px;height:${w * 0.18}px;border-radius:50%;background:radial-gradient(ellipse at center, rgba(0,0,0,${a}) 0%, rgba(0,0,0,${a * 0.5}) 45%, rgba(0,0,0,0) 72%)"></div>`; },
     flash(color, a) { return a > 0 ? `<div style="position:absolute;inset:0;background:${color};opacity:${a}"></div>` : ''; },
     photoBg(src, zoom = 1, ox = 0, oy = 0, extra = '') {
       return `<img src="${src}" style="position:absolute;left:${-W * (zoom - 1) / 2 + ox}px;top:${-H * (zoom - 1) / 2 + oy}px;width:${W * zoom}px;height:${H * zoom}px;object-fit:cover;${extra}">`;
