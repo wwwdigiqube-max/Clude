@@ -189,5 +189,72 @@
       <g stroke="#fff" stroke-width="10" stroke-linecap="round"><line x1="10" y1="20" x2="150" y2="20"/><line x1="50" y1="60" x2="190" y2="60"/><line x1="20" y1="100" x2="140" y2="100"/></g></svg>`;
   }
 
-  root.Assets = { eyes, hand, strawHat, cowbell, drop, sparkle, shield, spear, ladybugCartoon, snowflake, thermometer, cactus, bubble, speedLines };
+  // ---------- FIGHT CLOUD (classic cartoon dust ball) ----------
+  // t drives the boil of the puffs
+  function fightCloud(t = 0) {
+    let puffs = '';
+    const n = 11;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + 0.3 * Math.sin(t * 9 + i);
+      const r = 150 + 22 * Math.sin(t * 13 + i * 2.1);
+      const pr = 78 + 14 * Math.sin(t * 11 + i * 1.7);
+      puffs += `<circle cx="${300 + Math.cos(a) * r}" cy="${250 + Math.sin(a) * r * 0.78}" r="${pr}"/>`;
+    }
+    return `<svg viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <g fill="#F4E6C8" stroke="${K}" stroke-width="${SW * 1.4}">${puffs}</g>
+      <g fill="#F4E6C8">${puffs}</g>
+      <ellipse cx="300" cy="250" rx="190" ry="150" fill="#F4E6C8"/>
+      <g fill="#E3CFA4">${puffs.replace(/r="([\d.]+)"/g, (m, r) => `r="${r * 0.45}"`)}</g>
+    </svg>`;
+  }
+
+  function star(color = '#FF9A1F') {
+    let p = '';
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? 20 : 46, a = (i / 10) * Math.PI * 2 - Math.PI / 2; p += `${Math.cos(a) * r},${Math.sin(a) * r} `; }
+    return `<svg viewBox="-55 -55 110 110" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <polygon points="${p}" fill="${color}" stroke="${K}" stroke-width="7" stroke-linejoin="round"/></svg>`;
+  }
+
+  // anime "anger vein" cross
+  function angerVein() {
+    const arc = (r) => `<path d="M-40 -14 Q-14 -14 -14 -40" transform="rotate(${r})"/>`;
+    return `<svg viewBox="-55 -55 110 110" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <g fill="none" stroke="${K}" stroke-width="22" stroke-linecap="round">${[0, 90, 180, 270].map(arc).join('')}</g>
+      <g fill="none" stroke="#F0213B" stroke-width="12" stroke-linecap="round">${[0, 90, 180, 270].map(arc).join('')}</g></svg>`;
+  }
+
+  // shouting mouth (screaming oval), open 0..1
+  function mouth(open = 1) {
+    const ry = 26 + 34 * open, rx = 46 + 6 * open;
+    return `<svg viewBox="0 0 140 150" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <defs><clipPath id="mclip"><ellipse cx="70" cy="75" rx="${rx}" ry="${ry}"/></clipPath></defs>
+      <ellipse cx="70" cy="75" rx="${rx}" ry="${ry}" fill="#3A0A0E"/>
+      <g clip-path="url(#mclip)">
+        <rect x="0" y="${75 - ry}" width="140" height="${10 + 6 * open}" fill="#fff"/>
+        <ellipse cx="70" cy="${75 + ry}" rx="${rx * 0.7}" ry="${ry * 0.55}" fill="#F25C6E"/>
+      </g>
+      <ellipse cx="70" cy="75" rx="${rx}" ry="${ry}" fill="none" stroke="${K}" stroke-width="${SW}"/></svg>`;
+  }
+
+  // white ring with red border (the "look here" target)
+  function targetCircle() {
+    return `<svg viewBox="-60 -60 120 120" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <circle r="50" fill="none" stroke="#E5202E" stroke-width="12"/>
+      <circle r="50" fill="none" stroke="#fff" stroke-width="5"/></svg>`;
+  }
+
+  function sweat() {
+    return `<svg viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M30 4 C30 4 6 40 6 54 A24 24 0 0 0 54 54 C54 40 30 4 30 4Z" fill="#8FD8FF" stroke="${K}" stroke-width="6"/>
+      <ellipse cx="22" cy="52" rx="6" ry="10" fill="#fff" opacity=".8"/></svg>`;
+  }
+
+  function exclaim() {
+    return `<svg viewBox="0 0 60 160" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M14 8 H46 L40 104 H20 Z" fill="#fff" stroke="${K}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <circle cx="30" cy="134" r="17" fill="#fff" stroke="${K}" stroke-width="${SW}"/></svg>`;
+  }
+
+  root.Assets = { eyes, hand, strawHat, cowbell, drop, sparkle, shield, spear, ladybugCartoon, snowflake, thermometer, cactus, bubble, speedLines,
+    fightCloud, star, angerVein, mouth, targetCircle, sweat, exclaim };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,0 +1,133 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>02 Cutout test</title>
+<style>
+@font-face{font-family:'Luckiest Guy';src:url(../../node_modules/@fontsource/luckiest-guy/files/luckiest-guy-latin-400-normal.woff2)}
+html,body{margin:0;background:#000;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#000}
+.cap{position:absolute;left:50%;top:1330px;text-align:center;white-space:nowrap;font-family:'Luckiest Guy';font-size:96px;color:#fff;
+  -webkit-text-stroke:16px #000;paint-order:stroke fill;text-shadow:0 9px 0 rgba(0,0,0,.6);letter-spacing:2px;transform-origin:50% 50%}
+</style>
+<script src="../../engine/assets.js"></script>
+</head><body><div id="stage"></div>
+<script>
+const A = Assets;
+const LADY = { img: 'img/ladybug.png', w: 738, h: 463, parts: [
+  { name: 'body', clip: [[0,0],[738,0],[738,463],[300,463],[350,330],[320,250],[270,130],[0,120]] },
+  { name: 'head', clip: [[0,120],[270,130],[320,250],[350,330],[300,463],[0,463]], pivot: [300, 250] } ] };
+const ANT = { img: 'img/ant.png', w: 1705, h: 914, parts: [
+  { name: 'body', clip: [[0,0],[1705,0],[1705,914],[500,914],[650,620],[720,470],[700,330],[560,250],[0,200]] },
+  { name: 'head', clip: [[0,200],[560,250],[700,330],[720,470],[650,620],[500,914],[0,914]], pivot: [690, 420] } ] };
+const LA = [369, 300], AA = [800, 450];   // anchors
+
+// ladybug puppet helper
+function lady(H, E, t, o) {
+  const eyes = o.eyes === false ? null : { svg: A.eyes({ variant: o.eyeVar || 'normal', look: o.look || [-0.7, 0.2], blink: o.blink || 0 }), x: 212, y: 248, w: 165, scale: o.eyePop ?? 1 };
+  const extras = (o.attach || []);
+  return H.puppet(LADY, { x: o.x, y: o.y, anchor: LA, scale: 0.9, flip: o.flip, rot: o.rot || 0, sx: o.sx, sy: o.sy, blur: o.blur,
+    parts: { head: { rot: o.head || 0, attach: [eyes, ...extras] } } });
+}
+function ant(H, E, t, o) {
+  const eyes = { svg: A.eyes({ variant: o.eyeVar || 'normal', look: o.look || [-0.4, 0.3], blink: o.blink || 0 }), x: 604, y: 452, w: 245, scale: o.eyePop ?? 1 };
+  return H.puppet(ANT, { x: o.x, y: o.y, anchor: AA, scale: 0.62, flip: true, rot: o.rot || 0, sx: o.sx, sy: o.sy, blur: o.blur,
+    parts: { head: { rot: o.head || 0, attach: [eyes, ...(o.attach || [])] } } });
+}
+const walkBob = (t, on) => on ? -Math.abs(Math.sin(t * 11)) * 16 : 0;
+
+window.VIDEO = {
+  duration: 10, fps: 60,
+  images: { lady: 'img/ladybug.png', ant: 'img/ant.png', bokeh: 'img/bg_bokeh.jpg' },
+  shots: [
+    // A — ladybug walks in, sniffs around, looking for lunch
+    { start: 0, end: 3, noPunch: true,
+      bg: (t, E, H) => H.photoBg('img/bg_leaf.jpg', 1.0 + 0.025 * t),
+      camera: () => ({ zoom: 1.3 }),
+      draw: (t, E, H) => {
+        const p = E.out(E.prog(t, 0, 1.3)), moving = t < 1.3;
+        const land = E.spring(t, 1.3, 0.5);
+        const sniff = t > 1.5 && t < 2.7 ? -9 * Math.sin((t - 1.5) * 13) * (1 - (t - 1.5) / 1.2) : 0;
+        return [lady(H, E, t, { x: E.lerp(1450, 640, p), y: 1060 + walkBob(t, moving), rot: moving ? 2.5 * Math.sin(t * 11) : 0,
+          sy: moving ? 1 : E.breathe(t, 0.015) * (1 - 0.06 * (1 - land)), sx: moving ? 1 : 1 + 0.05 * (1 - land),
+          head: sniff + (t > 2.7 ? -4 : 0), eyePop: E.spring(t, 1.35, 0.55), look: t > 2.7 ? [-0.9, 0] : [-0.5, 0.6], blink: E.blinkAt(t, [2.45]) })];
+      } },
+    // B — the ant arrives and says NO
+    { start: 3, end: 5,
+      bg: (t, E, H) => H.photoBg('img/bg_leaf.jpg', 1.075 + 0.02 * t),
+      camera: (t, E) => { const [x, y] = t > 1.0 && t < 1.9 ? E.shake(t, 7) : [0, 0]; return { x, y, zoom: 1.16 }; },
+      draw: (t, E, H) => {
+        const slide = E.out(E.prog(t, 0, 0.28));
+        const land = E.spring(t, 0.28, 0.5);
+        const shout = t > 1.0 && t < 1.9;
+        const jolt = t > 0.55 ? 40 * E.spring(t, 0.55, 0.4) : 0;
+        return [
+          lady(H, E, t, { x: 760 + jolt, y: 1060, sy: E.breathe(t, 0.015), eyeVar: t > 0.55 ? 'shocked' : 'normal', look: [-0.5, 0], head: t > 0.55 ? 6 : 0,
+            attach: [{ svg: A.sweat(), x: 290, y: 150, w: 60, scale: E.pop(t, 0.75) }] }),
+          ant(H, E, t, { x: E.lerp(-700, 300, slide), y: 1085, blur: 70 * (1 - E.prog(t, 0, 0.3)), sx: 1 + 0.12 * (1 - land), sy: (1 - 0.1 * (1 - land)) * E.breathe(t, 0.012),
+            head: -14 * E.spring(t, 0.42, 0.5) + (shout ? 3 * Math.sin(t * 40) : 0),
+            eyeVar: 'angry', look: [-0.6, 0.1], eyePop: E.spring(t, 0.4, 0.5),
+            attach: [
+              { svg: A.angerVein(), x: 505, y: 340, w: 135, scale: E.pop(t, 0.8) * (1 + 0.15 * Math.sin(t * 26)) },
+              { svg: A.mouth(shout ? 0.55 + 0.45 * Math.abs(Math.sin(t * 17)) : 0.2), x: 552, y: 590, w: 120, rot: 20, scale: E.pop(t, 0.95, 0.2) },
+              { svg: A.targetCircle(), x: 560, y: 520, w: 330, scale: t < 1.0 ? E.pop(t, 0.5, 0.25) : 0 },
+            ] }),
+        ];
+      } },
+    // C — FIGHT CLOUD
+    { start: 5, end: 7.4,
+      bg: (t, E, H) => H.photoBg('img/bg_leaf.jpg', 1.12),
+      camera: (t, E) => { const [x, y] = t > 0.15 ? E.shake(t, 16, 19) : [0, 0]; return { x, y, zoom: 1.2 }; },
+      draw: (t, E, H) => {
+        const dash = E.inn(E.prog(t, 0, 0.15));
+        const inCloud = t > 0.15;
+        const items = [];
+        const j = (k) => (inCloud ? 26 * Math.sin(t * 31 + k) : 0);
+        items.push(ant(H, E, t, { x: E.lerp(300, 470, dash) + j(1), y: 1085 + j(2), blur: dash > 0 && dash < 1 ? 45 : 0, rot: inCloud ? 12 * Math.sin(t * 23) : 0, eyeVar: 'angry', look: [-0.6, 0.1],
+          attach: [{ svg: A.angerVein(), x: 505, y: 340, w: 135 }] }));
+        items.push(lady(H, E, t, { x: E.lerp(800, 660, dash) + j(3), y: 1060 + j(4), blur: dash > 0 && dash < 1 ? 35 : 0, rot: inCloud ? -14 * Math.sin(t * 27) : 0, eyeVar: 'shocked', look: [-0.5, 0] }));
+        if (inCloud) {
+          const cs = E.spring(t, 0.15, 0.45);
+          items.push(H.sticker(A.fightCloud(t), 545 + 10 * Math.sin(t * 37), 1060 + 10 * Math.cos(t * 33), 820, { scale: cs, rot: 4 * Math.sin(t * 21), shadow: true }));
+          for (let i = 0; i < 9; i++) {
+            const period = 0.55, ph = (t - 0.2 - i * 0.09);
+            if (ph < 0) continue;
+            const p = (ph % period) / period;
+            const a = i * 2.39 + Math.floor(ph / period) * 1.1;
+            items.push(H.sticker(A.star(i % 3 === 0 ? '#FFD43B' : '#FF9A1F'), 545 + Math.cos(a) * (230 + 420 * p), 1060 + Math.sin(a) * (180 + 380 * p), 70, { scale: 1.1 - p, rot: p * 400 }));
+          }
+        }
+        return items;
+      },
+      post: (t, E, H) => [H.flash('#FF2030', t > 0.15 && t < 0.184 ? 0.55 : 0), H.flash('#fff', t > 0.184 && t < 0.2 ? 0.35 : 0)] },
+    // D — solid teal: the ladybug runs away
+    { start: 7.4, end: 10,
+      bg: (t, E, H) => H.tealBg(1 + 0.02 * t),
+      draw: (t, E, H) => {
+        const run = E.inn(E.prog(t, 0.5, 0.4));
+        const quiver = t < 0.5 ? Math.sin(t * 60) * 0.025 : 0;
+        const items = [];
+        if (run > 0 && run < 1) {
+          for (let k = 0; k < 3; k++) items.push(H.sticker(A.speedLines(), E.lerp(800, 1900, run) - 380 - k * 90, 960 + k * 70, 260, { opacity: 0.9 - k * 0.25 }));
+        }
+        if (t > 0.5) for (let k = 0; k < 4; k++) {
+          const p = E.prog(t, 0.5 + k * 0.04, 0.6);
+          if (p > 0 && p < 1) items.push(H.sticker('<svg viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg"><circle r="44" fill="#F4E6C8" stroke="#111" stroke-width="7"/></svg>', 740 - k * 50 - p * 120, 1150 - k * 18 - p * 60, 70 + k * 12, { scale: 1 - p, opacity: 1 - p, shadow: false }));
+        }
+        items.push(lady(H, E, t, { x: E.lerp(800, 1900, run), y: 1040, flip: true, blur: 80 * run, sx: 1 + quiver + 0.15 * run, sy: 1 - quiver,
+          eyeVar: 'shocked', look: [0.7, -0.1], head: t < 0.5 ? 8 : -6,
+          attach: [{ svg: A.sweat(), x: 290, y: 150, w: 60 }, { svg: A.exclaim(), x: 230, y: 40, w: 55, scale: E.pop(t, 0.05), rot: 8 }] }));
+        const nod = t > 1.2 ? 6 * Math.sin((t - 1.2) * 9) * Math.max(0, 1 - (t - 1.2) / 1.0) : 0;
+        items.push(ant(H, E, t, { x: 250, y: 1130, sy: E.breathe(t, 0.02) * (1 + 0.05 * E.spring(t, 1.6, 0.6)), head: -6 + nod,
+          look: t < 1.0 ? [-0.8, 0] : [0.1, 0.4], blink: E.blinkAt(t, [1.9]),
+          attach: [{ svg: A.mouth(0.05), x: 552, y: 590, w: 85, rot: 20, scale: E.pop(t, 1.3) }] }));
+        return items;
+      } },
+  ],
+  captions: [
+    [0.15, 0.55, 'THIS'], [0.55, 1.15, 'LADYBUG'], [1.15, 1.45, 'IS'], [1.45, 2.1, 'HUNTING'], [2.1, 2.4, 'FOR'], [2.4, 3.0, 'LUNCH...'],
+    [3.0, 3.28, 'BUT'], [3.28, 3.5, 'THE'], [3.5, 3.9, 'ANT'], [3.9, 4.25, 'SAID'], [4.25, 5.0, 'NO!', { pop: true }],
+    [5.05, 6.2, 'FIGHT!', { pop: true }], [6.2, 7.4, 'POW!', { pop: true }],
+    [7.4, 7.62, 'THE'], [7.62, 8.1, 'LADYBUG'], [8.1, 8.45, 'RAN'], [8.45, 10, 'AWAY.'],
+  ],
+};
+</script>
+<script src="../../engine/stage.js"></script>
+</body></html>
