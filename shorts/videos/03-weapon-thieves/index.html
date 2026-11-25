@@ -24,6 +24,7 @@ const OCTJ = { img: 'img/octo_juvenile.png', w: 1496, h: 2193, parts: [
   { name: 'body', clip: [[0,0],[940,0],[940,700],[1000,950],[940,2193],[0,2193]] },
   { name: 'tent', clip: [[940,0],[1496,0],[1496,2193],[940,2193],[1000,950],[940,700]], pivot: [1150, 880] } ] };
 const OCTB = { img: 'img/octo_blanket.png', w: 1538, h: 1455, parts: [{ name: 'body' }] };
+const WHIP = { img: 'img/whip.png', w: 464, h: 1290, parts: [{ name: 'body' }] };
 const GLAU = { img: 'img/glaucus.png', w: 1080, h: 1006, parts: [{ name: 'body' }] };
 const MOW = { img: 'img/manowar.png', w: 858, h: 1286, parts: [
   { name: 'tent', clip: [[0,450],[858,450],[858,1286],[0,1286]], pivot: [330, 470] },
@@ -50,7 +51,14 @@ function octJ(H, E, t, o) {
              tent: { rot: o.tent || 0, attach: o.attachT || [] } } });
 }
 function octB(H, E, t, o) {
-  return H.puppet(OCTB, { x: o.x, y: o.y, scale: o.scale ?? 0.66, rot: o.rot || 0, sx: o.sx, sy: o.sy, blur: o.blur,
+  let whip = '';
+  if (o.whip !== undefined) {
+    // arm tip at image (215,1185); puppet centre (769,727)
+    const sc = o.scale ?? 0.66, r = (o.rot || 0) * Math.PI / 180, dx = (215 - 769) * sc, dy = (1185 - 727) * sc;
+    const wx = o.x + dx * Math.cos(r) - dy * Math.sin(r), wy = o.y + dx * Math.sin(r) + dy * Math.cos(r);
+    whip = H.puppet(WHIP, { x: wx, y: wy, anchor: [210, 0], scale: sc * 0.95, rot: o.whip, blur: o.whipBlur || 0, parts: {} });
+  }
+  return whip + H.puppet(OCTB, { x: o.x, y: o.y, scale: o.scale ?? 0.66, rot: o.rot || 0, sx: o.sx, sy: o.sy, blur: o.blur,
     parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [-0.3, 0.2], blink: o.blink || 0 }, 515, 690, 250, { scale: o.eyePop ?? 1 }), ...(o.attach || [])] } } });
 }
 function glau(H, E, t, o) {
@@ -75,17 +83,14 @@ const lensy = (H, x, y, w, o = {}) => H.sticker(C.lensy({ mood: o.mood || 'happy
 
 // ---------------- backgrounds ----------------
 function ocean(t, light = 0) {
-  const top = light ? '#4FB6E3' : '#1C78AE', mid = light ? '#1C82BD' : '#0E4D7A', bot = light ? '#0A4C7C' : '#04223A';
   let rays = '';
-  for (let i = 0; i < 4; i++) rays += `<div style="position:absolute;left:${120 + i * 250}px;top:-200px;width:${110 + i * 25}px;height:1500px;transform:rotate(${14 - i * 6}deg);transform-origin:50% 0;background:linear-gradient(180deg, rgba(255,255,255,${0.16 + 0.05 * Math.sin(t * 1.3 + i)}) 0%, rgba(255,255,255,0) 100%);filter:blur(10px)"></div>`;
+  for (let i = 0; i < 4; i++) rays += `<div style="position:absolute;left:${120 + i * 250}px;top:-200px;width:${110 + i * 25}px;height:1500px;transform:rotate(${14 - i * 6}deg);transform-origin:50% 0;background:linear-gradient(180deg, rgba(255,255,255,${0.07 + 0.03 * Math.sin(t * 1.3 + i)}) 0%, rgba(255,255,255,0) 100%);filter:blur(10px)"></div>`;
   let dots = '';
   for (let i = 0; i < 34; i++) {
     const x = (i * 263) % 1080, sp = 25 + (i * 17) % 40, y = 1920 - ((t * sp + i * 211) % 2000);
     dots += `<div style="position:absolute;left:${x + 14 * Math.sin(t + i)}px;top:${y}px;width:${4 + (i % 4) * 3}px;height:${4 + (i % 4) * 3}px;border-radius:50%;background:rgba(255,255,255,${0.25 + (i % 3) * 0.12})"></div>`;
   }
-  const surf = light ? `<svg style="position:absolute;left:0;top:110px" width="1080" height="80"><path d="M0 40 ${Array.from({ length: 13 }, (_, i) => `Q${i * 90 + 45} ${40 + 22 * Math.sin(t * 2 + i)} ${(i + 1) * 90} 40`).join(' ')}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="8"/></svg>
-    <div style="position:absolute;left:0;top:0;width:1080px;height:150px;background:linear-gradient(180deg,#BFEFFF,#4FB6E3)"></div>` : '';
-  return `<div style="position:absolute;inset:0;background:linear-gradient(180deg, ${top} 0%, ${mid} 45%, ${bot} 100%)"></div>${rays}${dots}${surf}`;
+  return `<img src="img/${light ? 'bg_surface' : 'bg_ocean'}.jpg" style="position:absolute;left:-30px;top:${-40 + 8 * Math.sin(t * .4)}px;width:1140px;height:2000px;object-fit:cover">${rays}${dots}`;
 }
 function lineupWall() {
   let lines = '';
@@ -156,7 +161,7 @@ function buildCaptions() {
 // ---------------- shots ----------------
 window.VIDEO = {
   duration: 48, fps: 60,
-  images: { a: CRAB.img, b: OCTJ.img, c: OCTB.img, d: GLAU.img, e: MOW.img, f: FISHF.img, g: FISHS.img, h: 'img/src/crab_real.jpg', i: 'img/bg_seabed.jpg' },
+  images: { w: 'img/whip.png', o: 'img/bg_ocean.jpg', s: 'img/bg_surface.jpg', a: CRAB.img, b: OCTJ.img, c: OCTB.img, d: GLAU.img, e: MOW.img, f: FISHF.img, g: FISHS.img, h: 'img/src/crab_real.jpg', i: 'img/bg_seabed.jpg' },
   captions: buildCaptions(),
   shots: [
     // A — the line-up: three thieves
@@ -168,9 +173,10 @@ window.VIDEO = {
         const caught = t > 2.95;
         return [
           crab(H, E, t, { x: 205, y: 900, scale: 0.25, sy: E.breathe(t, 0.02), eyePop: E.spring(t, 0.25, 0.5), look: shifty, eye: caught ? 'shocked' : 'normal', attachL: [{ svg: A.targetCircle(), x: 440, y: 60, w: 520, scale: E.pop(t, 3.0) }] }),
-          octJ(H, E, t, { x: 545, y: 800, scale: 0.36, sy: E.breathe(t + 1, 0.02), eyePop: E.spring(t, 0.55, 0.5), look: shifty, eye: caught ? 'shocked' : 'normal', tent: 4 * Math.sin(t * 2), attachT: [{ svg: A.targetCircle(), x: 1150, y: 760, w: 640, scale: E.pop(t, 3.1) }] }),
-          glau(H, E, t, { x: 870, y: 910, scale: 0.42, rot: -20, sy: E.breathe(t + 2, 0.02), eyePop: E.spring(t, 0.85, 0.5), look: shifty, eye: caught ? 'shocked' : 'normal', attach: [{ svg: A.targetCircle(), x: 511, y: 415, w: 480, scale: E.pop(t, 3.2) }] }),
-          plac(1, 205, E.pop(t, 0.35)), plac(2, 545, E.pop(t, 0.65)), plac(3, 870, E.pop(t, 0.95)),
+          octB(H, E, t, { x: 560, y: 790, scale: 0.3, sy: E.breathe(t + 1, 0.02), eyePop: E.spring(t, 0.55, 0.5), look: shifty, eye: caught ? 'shocked' : 'normal', whip: 18 + 5 * Math.sin(t * 2) }),
+          caught ? H.sticker(A.targetCircle(), 430, 920, 190, { scale: E.pop(t, 3.1) }) : '',
+          glau(H, E, t, { x: 885, y: 930, scale: 0.4, rot: -20, sy: E.breathe(t + 2, 0.02), eyePop: E.spring(t, 0.85, 0.5), look: shifty, eye: caught ? 'shocked' : 'normal', attach: [{ svg: A.targetCircle(), x: 511, y: 415, w: 480, scale: E.pop(t, 3.2) }] }),
+          plac(1, 205, E.pop(t, 0.35)), plac(2, 545, E.pop(t, 0.65)), plac(3, 885, E.pop(t, 0.95)),
           comic('THIEVES!', 540, 300, 150, E.pop(t, 3.0), -6),
         ];
       },
@@ -280,7 +286,7 @@ window.VIDEO = {
     // I — immune to the man o' war
     { start: 23.4, end: 26.5, bg: (t) => ocean(t + 23), draw: (t, E, H) => [
         octB(H, E, t, { x: 290, y: 760, scale: 0.42, rot: -4 + 3 * Math.sin(t * 1.5), sx: 1 + 0.03 * Math.sin(t * 3), look: [0.8, 0], eye: 'normal' }),
-        mow(H, E, t, { x: 800, y: 800, scale: 0.55, eyePop: E.spring(t, 0.2, 0.5), look: [-0.7, 0.2], blink: E.blinkAt(t, [1.4]) }),
+        mow(H, E, t, { x: 800, y: 800, scale: 0.6, eyePop: E.spring(t, 0.2, 0.5), look: [-0.7, 0.2], blink: E.blinkAt(t, [1.4]) }),
         label("MAN O' WAR", 800, 330, E.pop(t, 0.35), 3), H.sticker(A.warning(), 975, 330, 90, { scale: E.pop(t, 0.6) }),
         `<div class="lbl" style="left:290px;top:1080px;background:#3CCB5A;color:#fff;transform:translate(-50%,-50%) rotate(-5deg) scale(${E.spring(t, 1.3, 0.5)})">IMMUNE ✓</div>`,
         lensy(H, 890, 1160, 240, { scale: E.spring(t, 1.0, 0.5), pose: 'point', mood: 'smirk', look: [-0.6, -0.2], rot: -8, flip: true }),
@@ -298,13 +304,14 @@ window.VIDEO = {
         } else {
           const lt = t - 1.25;
           const swing = 32 * Math.sin(lt * 5), speed = Math.abs(Math.cos(lt * 5));
-          items.push(octJ(H, E, t, { x: 470, y: 820, scale: 0.52, eye: 'angry', look: [0.7, -0.2], tent: swing, sy: E.breathe(t, 0.02),
-            attach: [{ svg: A.angerVein(), x: 260, y: 700, w: 150, scale: E.pop(lt, 0.3) * (1 + 0.15 * Math.sin(t * 24)) }] }));
-          if (speed < 0.25) items.push(H.sticker(A.crack(), swing > 0 ? 860 : 820, swing > 0 ? 1180 : 240, 180, { scale: 1.2 - speed * 3, shadow: false }));
+          items.push(octB(H, E, t, { x: 520, y: 640, scale: 0.6, eye: 'angry', look: [0.6, 0.3], sy: E.breathe(t, 0.02), whip: -70 + 55 * Math.sin(lt * 5), whipBlur: speed > 0.6 ? 18 : 0,
+            attach: [{ svg: A.angerVein(), x: 380, y: 560, w: 150, scale: E.pop(lt, 0.3) * (1 + 0.15 * Math.sin(t * 24)) }] }));
+          if (speed < 0.25) items.push(H.sticker(A.crack(), Math.sin(lt * 5) > 0 ? 840 : 300, Math.sin(lt * 5) > 0 ? 1150 : 1180, 180, { scale: 1.2 - speed * 3, shadow: false }));
           // fish wanders in and gets whipped away
           const fin = E.out(E.prog(lt, 1.6, 0.6)), fout = E.inn(E.prog(lt, 2.6, 0.6));
-          if (lt > 1.6) items.push(fishS(H, E, t, { x: E.lerp(1400, 930, fin) + 900 * fout, y: 980, scale: 0.34, flip: fout > 0, blur: 70 * fout,
+          if (lt > 1.6) items.push(fishS(H, E, t, { x: E.lerp(1400, 900, fin) + 700 * fout, y: 1040 - 900 * fout + 300 * fout * fout, scale: 0.34 * (1 - 0.3 * fout), rot: 900 * fout, blur: 25 * fout,
             eye: fout > 0 ? 'shocked' : 'normal', look: [-0.5, 0], white: fout > 0 ? '#9BF06A' : '#fff' }));
+          if (fout > 0 && fout < 1) for (let k = 0; k < 4; k++) items.push(H.sticker(A.star('#FFD43B'), 900 + 700 * fout + 90 * Math.cos(t * 12 + k * 1.6), 1040 - 900 * fout + 300 * fout * fout + 60 * Math.sin(t * 12 + k * 1.6), 50, { rot: t * 300 }));
           if (lt > 2.6 && lt < 3.3) items.push(comic('CRACK!', 700, 420, 130, E.pop(lt, 2.6), 8));
         }
         return items;
@@ -313,7 +320,7 @@ window.VIDEO = {
     // K — #3 the blue dragon at the surface
     { start: 31.4, end: 33.8, bg: (t) => ocean(t + 31, 1), draw: (t, E, H) => {
         const drift = E.out(E.prog(t, 0, 1.2));
-        return [glau(H, E, t, { x: E.lerp(1300, 560, drift), y: 820 + 12 * Math.sin(t * 2), scale: 0.85, rot: -25 + 4 * Math.sin(t * 1.7), eyePop: E.spring(t, 0.9, 0.5), look: [0.2, 0.3], blink: E.blinkAt(t, [1.8]) }),
+        return [glau(H, E, t, { x: E.lerp(1300, 560, drift), y: 820 + 12 * Math.sin(t * 2), scale: 0.95, rot: -25 + 4 * Math.sin(t * 1.7), eyePop: E.spring(t, 0.9, 0.5), look: [0.2, 0.3], blink: E.blinkAt(t, [1.8]) }),
           H.sticker(A.sparkle(), 300, 560, 80, { scale: E.pop(t, 1.3) * (0.8 + 0.2 * Math.sin(t * 9)), rot: t * 90 }),
           label('BLUE DRAGON', 540, 330, E.pop(t, 0.6)), H.sticker(A.badge(3), 130, 160, 170, { scale: E.spring(t, 0.05, 0.5) })];
       } },
@@ -326,7 +333,7 @@ window.VIDEO = {
         const app = E.out(E.prog(t, 0, 1.0));
         const items = [
           mow(H, E, t, { x: 720, y: 760, scale: 0.6 * (1 - 0.17 * bites), eye: bites ? 'shocked' : 'normal', look: [-0.7, 0.2], attach: bites ? [{ svg: A.sweat(), x: 720, y: 120, w: 90 }] : [] }),
-          glau(H, E, t, { x: E.lerp(-200, 330, app), y: 900, scale: 0.6, rot: -40 + 8 * Math.sin(t * 6), eye: bites ? 'heart' : 'normal', look: [0.8, -0.3] }),
+          glau(H, E, t, { x: E.lerp(-200, 330, app), y: 900, scale: 0.68, rot: -40 + 8 * Math.sin(t * 6), eye: bites ? 'heart' : 'normal', look: [0.8, -0.3] }),
         ];
         if (t > 1.2 && t < 2.6) items.push(comic('CHOMP!', 560, 420, 140, E.pop(t, 1.2) * (1 + 0.08 * Math.sin(t * 20)), -8));
         if (t > 2.6) for (let k = 0; k < 6; k++) { const p = E.prog(t, 2.6 + k * 0.12, 0.6); if (p > 0 && p < 1) items.push(H.sticker(A.stinger(), E.lerp(700, 360, p), E.lerp(720, 880, p) - 140 * Math.sin(p * Math.PI), 70, { rot: p * 360 })); }
@@ -351,7 +358,7 @@ window.VIDEO = {
           items.push(`<div style="position:absolute;left:${LX - R}px;top:${LY - R}px;width:${2 * R}px;height:${2 * R}px;border-radius:50%;overflow:hidden;background:#1C6762;opacity:${lin}">
             <div style="position:absolute;left:${-(LX - R)}px;top:${-(LY - R)}px;width:1080px;height:1920px">${inner}</div></div>`);
           items.push(H.sticker(lensRing(), LX + 25, LY + 185, 480 * 0.94, { rot: -10, opacity: lin }));
-          items.push(H.sticker(A.eyes({ look: [0, 0.6], blink: E.blinkAt(t, [2.0]) }), LX, LY - R - 20, 150, { scale: E.pop(t, 0.7), shadow: false }));
+          items.push(H.sticker(A.eyes({ look: [0, 0.7], blink: E.blinkAt(t, [2.0]) }), LX, LY - R + 62, 125, { scale: E.pop(t, 0.7), opacity: 0.92, shadow: false }));
         } else {
           // power bars
           const b1 = E.out(E.prog(t, 3.2, 0.5)), b2 = E.out(E.prog(t, 3.6, 0.7));
@@ -360,7 +367,7 @@ window.VIDEO = {
           items.length = 0;
           items.push(bar(560, 55 * b1, '#9B7CFF', "MAN O' WAR"), bar(860, 100 * b2, '#2BB6FF', 'BLUE DRAGON'));
           items.push(H.sticker(A.crack(), 960, 920, 200, { scale: E.pop(t, 4.2), shadow: false }));
-          items.push(comic('STRONGER!', 540, 1180, 120, E.pop(t, 4.25), -6));
+          items.push(comic('POWER UP!', 540, 1100, 120, E.pop(t, 4.25), -6));
           items.push(lensy(H, 880, 330, 240, { scale: E.spring(t, 3.1, 0.5), mood: 'shock', pose: 'shock' }));
         }
         return items;
