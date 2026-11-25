@@ -31,45 +31,47 @@ const CUCK = { img: 'img/cuckoo.png', w: 1485, h: 1500, parts: [
   { name: 'mom', clip: [[750,0],[1485,0],[1485,560],[1130,560],[1060,440],[900,300],[760,280]] } ] };
 
 const eyeA = (o, x, y, w, extra = {}) => Object.assign({ svg: A.eyes(o), x, y, w }, extra);
+// one cartoon eye placed exactly on one real eye (measured at 4x zoom). flip mirrors the brow; look stays in screen space
+const E1 = (o, x, y, w, extra = {}) => { const oo = Object.assign({}, o, { mode: 'one' }); if (extra.flip && oo.look) oo.look = [-oo.look[0], oo.look[1]]; return Object.assign({ svg: A.eyes(oo), x, y, w }, extra); };
 // a growing liar beak attached at (bx,by) in image px, k = thickness scale
 const beak = (bx, by, len, k = 0.45, rot = 0, color) => len <= 0 ? null : { svg: A.liarBeak(len, color), x: bx + ((len + 30) * k) / 2, y: by, w: (len + 30) * k, rot, origin: '0% 50%' };
 
 function drongo(H, E, t, o) {
-  const eyes = eyeA({ variant: o.eye || 'normal', look: o.look || [0.4, 0], blink: o.blink || 0, mode: '3q' }, 462, 76, 125, { scale: o.eyePop ?? 1 });
-  const att = [eyes, beak(565, 78, o.nose || 0, 0.42), ...(o.attach || [])];
+  const eyes = E1({ variant: o.eye || 'normal', look: o.look || [0.4, 0], blink: o.blink || 0 }, 494, 87, 77, { scale: o.eyePop ?? 1 });
+  const att = [eyes, beak(614, 104, o.nose || 0, 0.32, 18), ...(o.attach || [])];
   return H.puppet(DRONGO, { x: o.x, y: o.y, scale: o.scale ?? 0.8, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
     parts: { branch: { tint: o.noBranch ? 'opacity(0)' : '' }, bird: { rot: o.birdRot || 0, dx: o.dx || 0, dy: o.dy || 0, attach: att } } });
 }
 function meerkat(H, E, t, o) {
   return H.puppet(MKS, { x: o.x, y: o.y, scale: o.scale ?? 0.4, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
-    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.4, 0], blink: o.blink || 0, mode: '3q' }, 771, 137, 150, { scale: o.eyePop ?? 1 }), ...(o.attach || [])] } } });
+    parts: { body: { attach: [E1({ variant: o.eye || 'normal', look: o.look || [0.4, 0], blink: o.blink || 0 }, 930, 140, 64, { scale: o.eyePop ?? 1 }), E1({ variant: o.eye || 'normal', look: o.look || [0.4, 0], blink: o.blink || 0 }, 802, 154, 120, { scale: o.eyePop ?? 1 }), ...(o.attach || [])] } } });
 }
 function meerkatFood(H, E, t, o) {
   return H.puppet(MKF, { x: o.x, y: o.y, scale: o.scale ?? 0.6, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
-    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.5, 0.8], blink: o.blink || 0, mode: '3q' }, 898, 282, 170, { scale: o.eyePop ?? 1 }), ...(o.attach || [])] } } });
+    parts: { body: { attach: [E1({ variant: o.eye || 'normal', look: o.look || [0.5, 0.8], blink: o.blink || 0 }, 932, 305, 127, { scale: o.eyePop ?? 1 }), ...(o.attach || [])] } } });
 }
 function hawk(H, E, t, o) {
   return H.puppet(HAWK, { x: o.x, y: o.y, scale: o.scale ?? 0.45, rot: o.rot || 0, flip: o.flip, blur: o.blur,
-    parts: { body: { attach: [eyeA({ variant: 'angry', look: [0.6, 0.3], mode: '3q' }, 333, 233, 110, { flip: true })] } } });
+    parts: { body: { attach: [E1({ variant: 'angry', look: [-0.6, 0.3] }, 318, 253, 40, { flip: true })] } } });
 }
 function foxF(H, E, t, o) {
   return H.puppet(FOXF, { x: o.x, y: o.y, scale: o.scale ?? 0.6, rot: o.rot || 0,
-    parts: { body: { attach: [eyeA({ variant: o.eye || 'angry', look: o.look || [0, 0.6] }, 296, 262, 270), ...(o.attach || [])] } } });
+    parts: { body: { attach: [E1({ variant: o.eye || 'angry', look: o.look || [0, 0.6] }, 260, 296, 85, { flip: true }), E1({ variant: o.eye || 'angry', look: o.look || [0, 0.6] }, 381, 286, 80), ...(o.attach || [])] } } });
 }
 function foxS(H, E, t, o) {
   return H.puppet(FOXS, { x: o.x, y: o.y, scale: o.scale ?? 0.5, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
-    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.7, 0.2], mode: '3q' }, 1080, 137, 125), ...(o.attach || [])] } } });
+    parts: { body: { attach: [E1({ variant: o.eye || 'normal', look: o.look || [0.7, 0.2] }, 1192, 194, 48), E1({ variant: o.eye || 'normal', look: o.look || [0.7, 0.2] }, 1119, 206, 77), ...(o.attach || [])] } } });
 }
 function killdeer(H, E, t, o) {
   return H.puppet(KILL, { x: o.x, y: o.y, scale: o.scale ?? 0.45, rot: o.rot || 0, flip: o.flip, blur: o.blur, sx: o.sx, sy: o.sy,
-    parts: { body: { attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.5, 0], blink: o.blink || 0, mode: '3q' }, 1242, 177, 150, { scale: o.eyePop ?? 1 }), beak(1405, 238, o.nose || 0, 0.42), ...(o.attach || [])] } } });
+    parts: { body: { attach: [E1({ variant: o.eye || 'normal', look: o.look || [0.5, 0], blink: o.blink || 0 }, 1284, 201, 127, { scale: o.eyePop ?? 1 }), beak(1495, 272, o.nose || 0, 0.32, 25), ...(o.attach || [])] } } });
 }
 function cuckoo(H, E, t, o) {
   return H.puppet(CUCK, { x: o.x, y: o.y, scale: o.scale ?? 0.6, rot: o.rot || 0, sx: o.sx, sy: o.sy,
-    parts: { chick: { rot: o.chickRot || 0, attach: [eyeA({ variant: o.eye || 'normal', look: o.look || [0.3, -0.3], blink: o.blink || 0, mode: '3q' }, 567, 311, 170, { scale: o.eyePop ?? 1 }),
-                       beak(680, 150, o.nose || 0, 0.5, -38, '#2B2B2B'), ...(o.attach || [])] },
+    parts: { chick: { rot: o.chickRot || 0, attach: [E1({ variant: o.eye || 'normal', look: o.look || [0.3, -0.3], blink: o.blink || 0 }, 600, 336, 92, { scale: o.eyePop ?? 1 }),
+                       beak(716, 166, o.nose || 0, 0.34, -66, '#2B2B2B'), ...(o.attach || [])] },
              mom: { tint: o.momHide ? 'opacity(0)' : '', dx: o.momDx || 0, dy: o.momDy || 0, rot: o.momRot || 0,
-                    attach: o.momHide ? [] : [eyeA({ variant: o.momEye || 'normal', look: o.momLook || [0.6, 0.4], mode: '3q' }, 864, 146, 95, { flip: true }), ...(o.momAttach || [])] } } });
+                    attach: o.momHide ? [] : [E1({ variant: o.momEye || 'normal', look: o.momLook || [-0.6, 0.4] }, 890, 156, 51, { flip: true }), ...(o.momAttach || [])] } } });
 }
 const lensy = (H, x, y, w, o = {}) => H.sticker(C.lensy({ mood: o.mood || 'happy', pose: o.pose || 'point', look: o.look || [0.4, 0.1], t: o.t || 0 }), x, y, w, o);
 
@@ -246,11 +248,11 @@ window.VIDEO = {
       draw: (t, E, H) => {
         const flop = 1.5 * Math.sin(t * 11);
         const tears = [];
-        for (let k = 0; k < 3; k++) { const p = ((t * 1.4 + k / 3) % 1); tears.push({ svg: A.sweat(), x: 1066 + 6 * k, y: 452 + 120 * p, w: 22, opacity: 1 - p }); }
+        for (let k = 0; k < 3; k++) { const p = ((t * 1.4 + k / 3) % 1); tears.push({ svg: A.sweat(), x: 1066 + 5 * k, y: 446 + 110 * p, w: 16, opacity: 1 - p }); }
         return [
           `<div style="position:absolute;inset:0;transform:rotate(${flop}deg) scale(1.04);transform-origin:50% 40%">` +
           photoCam('img/src/killdeer_broken.jpg', 1920, 1280, { cx: 1130, cy: 540, h: 1000 - 80 * E.inOut(t / 3.2) }, [
-            { svg: A.eyes({ variant: 'sad', look: [0.3, 0.5], blink: E.blinkAt(t, [2.6]), mode: '3q' }), x: 1064, y: 426, w: 78, flip: true },
+            { svg: A.eyes({ variant: 'sad', look: [-0.3, 0.5], blink: E.blinkAt(t, [2.6]), mode: 'one' }), x: 1064, y: 426, w: 50, flip: true },
             ...tears,
           ]) + `</div>`,
           comic('OUCH!', 330, 380, 130, E.pop(t, 0.5) * (1 + 0.05 * Math.sin(t * 20)), -10),
@@ -337,7 +339,7 @@ window.VIDEO = {
         return [
           cuckoo(H, E, t, { x: X, y: Y, scale: sc, look: [0.6, -0.6], momHide: true, sy: 1 + (c > 0.3 && c < 0.55 ? 0.03 * Math.sin(t * 30) : 0) }),
           H.puppet(CUCK, { x: X + 1200 * off, y: Y - 250 * off, scale: sc, rot: -12 * off, blur: moving ? 45 : 0,
-            parts: { chick: { tint: 'opacity(0)' }, mom: { attach: [eyeA({ variant: 'shocked', look: [0.6, 0.3], mode: '3q' }, 864, 146, 95, { flip: true }), ...sweats] } } }),
+            parts: { chick: { tint: 'opacity(0)' }, mom: { attach: [E1({ variant: 'shocked', look: [-0.6, 0.3] }, 890, 156, 51, { flip: true }), ...sweats] } } }),
           label('FOSTER MOM', 820, 300, E.pop(t, 0.2), 4),
           stamp('NO BREAKS!', 330, 560, E.spring(t, 1.5, 0.5), -8),
         ];
