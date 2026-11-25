@@ -7,7 +7,7 @@
   // ---------- EYES ----------
   // variant: normal | shocked | angry | heart | sad
   // look: [-1..1, -1..1] pupil direction; blink: 0 open .. 1 closed
-  function eyes({ variant = 'normal', look = [0, 0], blink = 0, beat = 0 } = {}) {
+  function eyes({ variant = 'normal', look = [0, 0], blink = 0, beat = 0, white = '#fff' } = {}) {
     const one = (cx, side) => {
       const cy = 100;
       if (variant === 'heart') {
@@ -43,7 +43,7 @@
       const cp = clip ? `clip-path="url(#c${side})"` : '';
       return `<g transform="translate(0 ${cy}) scale(1 ${sy}) translate(0 ${-cy})">${clip}
         <g ${cp}>
-          <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#fff" stroke="${K}" stroke-width="${SW}"/>
+          <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${white}" stroke="${K}" stroke-width="${SW}"/>
           <circle cx="${px}" cy="${py}" r="${pr}" fill="${K}"/>
           <circle cx="${px - pr * 0.35}" cy="${py - pr * 0.38}" r="${pr * 0.3}" fill="#fff"/>
         </g>${clip ? `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${K}" stroke-width="${SW}" ${cp}/>` : ''}${brow}</g>`;
@@ -255,6 +255,116 @@
       <circle cx="30" cy="134" r="17" fill="#fff" stroke="${K}" stroke-width="${SW}"/></svg>`;
   }
 
+  // ---------- SEA ANEMONE (cartoon pom-pom) ----------
+  // half: 0 full, -1 left half only, 1 right half only (for the "rip in half" gag)
+  function anemone({ t = 0, half = 0 } = {}) {
+    let ten = '';
+    const n = 13;
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI + (i / (n - 1)) * Math.PI;           // fan over the top
+      const wav = 8 * Math.sin(t * 6 + i * 0.9);
+      const x2 = 100 + Math.cos(a) * 82 + wav, y2 = 92 + Math.sin(a) * 78;
+      const x1 = 100 + Math.cos(a) * 30, y1 = 100 + Math.sin(a) * 20;
+      ten += `<path d="M${x1} ${y1} Q${(x1 + x2) / 2 + wav} ${(y1 + y2) / 2 - 10} ${x2} ${y2}"/>`;
+    }
+    const clip = half ? `<clipPath id="ah${half}"><rect x="${half < 0 ? 0 : 100}" y="0" width="100" height="200"/></clipPath>` : '';
+    const cp = half ? `clip-path="url(#ah${half})"` : '';
+    return `<svg viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg" overflow="visible">${clip}<g ${cp}>
+      <g fill="none" stroke="${K}" stroke-width="22" stroke-linecap="round">${ten}</g>
+      <g fill="none" stroke="#FFF4F7" stroke-width="13" stroke-linecap="round">${ten}</g>
+      <g fill="none" stroke="#FFB8CF" stroke-width="5" stroke-linecap="round" opacity=".7">${ten}</g>
+      <path d="M62 100 Q100 80 138 100 L130 150 Q100 164 70 150 Z" fill="#FFD9E5" stroke="${K}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M78 112 L76 146 M100 108 L100 152 M122 112 L124 146" stroke="#F3A5C0" stroke-width="5" stroke-linecap="round"/></g></svg>`;
+  }
+
+  function glove() {
+    return `<svg viewBox="0 0 140 150" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M30 70 C20 30 50 10 80 14 C118 18 132 50 126 82 C122 104 104 116 82 116 L46 116 C34 110 30 96 30 70Z" fill="#E8282E" stroke="${K}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M30 70 C14 66 8 86 22 96 C30 100 38 96 40 88" fill="#E8282E" stroke="${K}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <rect x="40" y="110" width="66" height="32" rx="8" fill="#fff" stroke="${K}" stroke-width="${SW}"/>
+      <path d="M56 34 C70 26 90 26 102 36" fill="none" stroke="#FF8A8E" stroke-width="10" stroke-linecap="round"/></svg>`;
+  }
+
+  function poison() {
+    return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M60 6 C60 6 12 74 12 100 A48 48 0 0 0 108 100 C108 74 60 6 60 6Z" fill="#7BE33A" stroke="${K}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <circle cx="60" cy="96" r="22" fill="#fff" stroke="${K}" stroke-width="5"/><rect x="50" y="112" width="20" height="14" rx="3" fill="#fff" stroke="${K}" stroke-width="5"/>
+      <circle cx="52" cy="95" r="6" fill="${K}"/><circle cx="68" cy="95" r="6" fill="${K}"/></svg>`;
+  }
+
+  // white disc holding an icon (for the "A + B" infographic)
+  function iconDisc(inner) {
+    return `<svg viewBox="-80 -80 160 160" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <circle r="72" fill="#fff" stroke="${K}" stroke-width="${SW}"/>${inner.replace('<svg ', '<svg x="-48" y="-50" width="96" height="100" ')}</svg>`;
+  }
+  function plus() {
+    return `<svg viewBox="-40 -40 80 80" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M-10 -32 H10 V-10 H32 V10 H10 V32 H-10 V10 H-32 V-10 H-10Z" fill="#fff" stroke="${K}" stroke-width="7" stroke-linejoin="round"/></svg>`;
+  }
+
+  function scissors() {
+    return `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <g stroke="${K}" stroke-width="${SW}" stroke-linejoin="round">
+        <path d="M80 60 L196 20 L196 34 Z" fill="#D7DDE3"/><path d="M80 60 L196 100 L196 86 Z" fill="#D7DDE3"/>
+        <circle cx="44" cy="30" r="24" fill="#FF6B2C"/><circle cx="44" cy="90" r="24" fill="#FF6B2C"/></g>
+      <circle cx="44" cy="30" r="10" fill="#fff" stroke="${K}" stroke-width="5"/><circle cx="44" cy="90" r="10" fill="#fff" stroke="${K}" stroke-width="5"/>
+      <circle cx="82" cy="60" r="7" fill="${K}"/></svg>`;
+  }
+
+  // pixel-style "deal with it" shades
+  function sunglasses() {
+    const px = (x, y) => `<rect x="${x * 20}" y="${y * 20}" width="20" height="20"/>`;
+    let g = '';
+    for (let x = 0; x < 16; x++) g += px(x, 0);
+    [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [9, 1], [10, 1], [11, 1], [12, 1], [13, 1], [14, 1], [2, 2], [3, 2], [4, 2], [5, 2], [10, 2], [11, 2], [12, 2], [13, 2], [7, 1], [8, 1]].forEach(([x, y]) => (g += px(x, y)));
+    return `<svg viewBox="0 0 320 70" xmlns="http://www.w3.org/2000/svg" overflow="visible"><g fill="${K}">${g}</g>
+      <g fill="#fff"><rect x="40" y="20" width="20" height="20"/><rect x="220" y="20" width="20" height="20"/></g></svg>`;
+  }
+
+  function infinity() {
+    const d = 'M100 60 C80 20 20 20 20 60 C20 100 80 100 100 60 C120 20 180 20 180 60 C180 100 120 100 100 60Z';
+    return `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="${d}" fill="none" stroke="${K}" stroke-width="34" stroke-linejoin="round"/>
+      <path d="${d}" fill="none" stroke="#FFD43B" stroke-width="20" stroke-linejoin="round"/></svg>`;
+  }
+
+  function warning() {
+    return `<svg viewBox="0 0 140 124" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M70 8 L134 116 L6 116 Z" fill="#E5202E" stroke="${K}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M62 44 H78 L75 84 H65 Z" fill="#fff"/><circle cx="70" cy="98" r="8" fill="#fff"/></svg>`;
+  }
+
+  // whip "crack" burst
+  function crack() {
+    let rays = '';
+    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; rays += `<line x1="${Math.cos(a) * 26}" y1="${Math.sin(a) * 26}" x2="${Math.cos(a) * (i % 2 ? 58 : 74)}" y2="${Math.sin(a) * (i % 2 ? 58 : 74)}"/>`; }
+    return `<svg viewBox="-80 -80 160 160" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <g stroke="${K}" stroke-width="16" stroke-linecap="round">${rays}</g><g stroke="#FFF36B" stroke-width="8" stroke-linecap="round">${rays}</g></svg>`;
+  }
+
+  function sign(text1, text2 = '') {
+    return `<svg viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <rect x="138" y="120" width="24" height="140" rx="6" fill="#A86A33" stroke="${K}" stroke-width="${SW}"/>
+      <rect x="10" y="10" width="280" height="140" rx="16" fill="#F7D68A" stroke="${K}" stroke-width="${SW}"/>
+      <g stroke="#D9AE5E" stroke-width="5"><line x1="24" y1="60" x2="276" y2="60"/><line x1="24" y1="104" x2="276" y2="104"/></g>
+      <text x="150" y="72" text-anchor="middle" font-family="Luckiest Guy" font-size="46" fill="${K}">${text1}</text>
+      <text x="150" y="128" text-anchor="middle" font-family="Luckiest Guy" font-size="40" fill="#C2272D">${text2}</text></svg>`;
+  }
+
+  function badge(n) {
+    return `<svg viewBox="-70 -70 140 140" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <circle r="60" fill="#FF7A1A" stroke="${K}" stroke-width="${SW}"/><circle r="47" fill="none" stroke="#FFB37A" stroke-width="5"/>
+      <text y="24" text-anchor="middle" font-family="Luckiest Guy" font-size="72" fill="#fff" stroke="${K}" stroke-width="6" paint-order="stroke">#${n}</text></svg>`;
+  }
+
+  // little spiky stinger capsule (nematocyst), glowing
+  function stinger() {
+    return `<svg viewBox="-30 -30 60 60" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <circle r="24" fill="#5FE3FF" opacity=".35"/><ellipse rx="11" ry="15" fill="#2BB6FF" stroke="${K}" stroke-width="4"/>
+      <path d="M0 -15 L0 -27 M-6 -22 L0 -27 L6 -22" stroke="${K}" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`;
+  }
+
   root.Assets = { eyes, hand, strawHat, cowbell, drop, sparkle, shield, spear, ladybugCartoon, snowflake, thermometer, cactus, bubble, speedLines,
-    fightCloud, star, angerVein, mouth, targetCircle, sweat, exclaim };
+    fightCloud, star, angerVein, mouth, targetCircle, sweat, exclaim,
+    anemone, glove, poison, iconDisc, plus, scissors, sunglasses, infinity, warning, crack, sign, badge, stinger };
 })(typeof window !== 'undefined' ? window : globalThis);
