@@ -1,0 +1,135 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>01 Ants farming</title>
+<style>
+@font-face{font-family:'Luckiest Guy';src:url(../../node_modules/@fontsource/luckiest-guy/files/luckiest-guy-latin-400-normal.woff2)}
+html,body{margin:0;background:#000;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#000}
+.cap{position:absolute;left:50%;top:1230px;width:960px;text-align:center;font-family:'Luckiest Guy';font-size:98px;line-height:1.05;color:#fff;
+  -webkit-text-stroke:16px #000;paint-order:stroke fill;text-shadow:0 8px 0 rgba(0,0,0,.55);letter-spacing:1px;transform-origin:50% 50%}
+.cap .hl{color:#FFD43B}
+</style>
+<script src="../../engine/assets.js"></script>
+</head><body><div id="stage"></div>
+<script>
+const A = Assets;
+const eyes = (o) => A.eyes(o);
+// helpers: world overlay
+const W = (svg, x, y, w, extra = {}) => Object.assign({ svg, x, y, w }, extra);
+const S = (svg, x, y, w, extra = {}) => Object.assign({ svg, x, y, w, world: false }, extra);
+
+window.VIDEO = {
+  duration: 31, fps: 30,
+  images: {
+    ant: 'img/s1_ant.jpg', aphids: 'img/s2_aphids.jpg', tap: 'img/s3_tapping.jpg', dew: 'img/s4_honeydew.jpg',
+    lady: 'img/s5a_ladybug.jpg', guards: 'img/s5b_guards.jpg', under: 'img/s6_underground.jpg',
+  },
+  scenes: [
+    // 1 HOOK — ant gets a farmer hat
+    { start: 0, end: 3, img: 'ant', noPunch: true, from: { cx: 680, cy: 747, h: 1495 }, to: { cx: 675, cy: 770, h: 1180 },
+      overlays: (t, E) => {
+        const fall = t < 0.15 ? -1 : E.bounce(E.prog(t, 0.15, 0.6));
+        return [
+          W(eyes({ look: [-0.35, 0.25], blink: E.blinkAt(t, [2.1]) }), 668, 778, 225, { scale: E.pop(t, 0.75) }),
+          W(A.strawHat(), 668, 660 - (1 - fall) * 900, 360, { rot: -10, opacity: t < 0.15 ? 0 : 1 }),
+        ];
+      } },
+    // 2 — aphids are the cows
+    { start: 3, end: 6.2, img: 'aphids', from: { cx: 470, cy: 703, h: 1406 }, to: { cx: 330, cy: 1056, h: 700 },
+      overlays: (t, E) => [
+        W(eyes({ look: [0.3, -0.2], blink: E.blinkAt(t, [2.6]) }), 322, 1222, 95, { scale: E.pop(t, 0.5) }),
+        W(A.cowbell(), 292, 1275, 48, { scale: E.pop(t, 1.25), rot: 10 * Math.sin(t * 9), origin: '50% 0%' }),
+        W(A.bubble('MOO!'), 435, 1085, 125, { scale: E.pop(t, 1.9) }),
+      ] },
+    // 3 — antennae tapping
+    { start: 6.2, end: 11, img: 'tap', from: { cx: 700, cy: 563, h: 1127 }, to: { cx: 790, cy: 430, h: 760 },
+      overlays: (t, E) => {
+        const taps = [1.5, 2.0, 2.5, 3.0, 3.5];
+        const tapK = taps.reduce((m, b) => Math.max(m, t >= b && t < b + 0.25 ? Math.sin(((t - b) / 0.25) * Math.PI) : 0), 0);
+        const startled = taps.some((b) => t >= b && t < b + 0.32);
+        return [
+          W(eyes({ look: [0.6, 0.6], blink: E.blinkAt(t, [0.9]) }), 714, 296, 84, { scale: E.pop(t, 0.3) }),
+          W(eyes({ variant: startled ? 'shocked' : 'normal', look: [-0.6, -0.5] }), 868, 462, 80, { scale: E.pop(t, 0.6) * (1 + 0.15 * tapK) }),
+          W(A.hand(), 770 + 14 * tapK, 405 + 9 * tapK, 95, { rot: 32, scale: E.pop(t, 1.0) }),
+        ];
+      } },
+    // 4 — honeydew (low-res photo, shown as a card)
+    { start: 11, end: 16, img: 'dew', viewport: { x: 40, y: 360, w: 1000, h: 667 },
+      from: { cx: 400, cy: 266, h: 533 }, to: { cx: 300, cy: 255, h: 340 },
+      overlays: (t, E) => {
+        const sp = (dx, dy, t0, w) => W(A.sparkle(), 305 + dx, 318 + dy, w, { scale: E.pop(t, t0) * (0.8 + 0.2 * Math.sin(t * 8 + dx)), rot: t * 60 });
+        return [
+          W(eyes({ variant: t > 2.0 ? 'heart' : 'normal', look: [0.2, 0.6], beat: t * 2.2 }), 292, 212, 105, { scale: E.pop(t, 0.25) }),
+          sp(-28, -10, 1.3, 22), sp(30, -22, 1.45, 16), sp(26, 26, 1.6, 20),
+          W(A.bubble('YUM!'), 395, 150, 140, { scale: E.pop(t, 3.4) }),
+        ];
+      } },
+    // 5a — ants protect their herd
+    { start: 16, end: 18.4, img: 'guards', from: { cx: 1330, cy: 640, h: 1280 }, to: { cx: 1340, cy: 820, h: 900 },
+      overlays: (t, E) => guards(t, E, false) },
+    // 5b — the hungry ladybug
+    { start: 18.4, end: 19.8, img: 'lady', from: { cx: 760, cy: 640, h: 1280 }, to: { cx: 690, cy: 790, h: 820 },
+      overlays: (t, E) => { const [sx, sy] = E.shake(t, 3); return [
+        W(eyes({ variant: 'angry', look: [-0.4, 0.3] }), 648 + sx, 768 + sy, 190, { scale: E.pop(t, 0.12) }),
+      ]; } },
+    // 5c — chased off
+    { start: 19.8, end: 21, img: 'guards', from: { cx: 1340, cy: 820, h: 900 }, to: { cx: 1345, cy: 815, h: 860 },
+      overlays: (t, E) => {
+        const run = E.prog(t, 0.15, 0.95);
+        const lx = 560 + run * 900;
+        return [...guards(t + 5, E, true),
+          S(A.speedLines(), lx - 230, 900, 200, { opacity: run > 0 && run < 1 ? 1 : 0, rot: 180 }),
+          S(A.ladybugCartoon(), lx, 900 + 10 * Math.sin(t * 40), 300, { opacity: run < 1 ? 1 : 0 })];
+      } },
+    // 6 — underground, all winter
+    { start: 21, end: 26, img: 'under', from: { cx: 780, cy: 655, h: 1310 }, to: { cx: 820, cy: 720, h: 950 },
+      tint: (t) => `rgba(120,180,255,${0.28 * Math.min(1, t / 0.8)})`,
+      overlays: (t, E) => {
+        const sh = (k) => E.shake(t + k, t > 1.2 ? 4 : 0, 18);
+        const flakes = [];
+        for (let i = 0; i < 16; i++) {
+          const x = (i * 157 + 60) % 1080, sp = 180 + (i * 37) % 120;
+          const y = ((t * sp + i * 233) % 2100) - 100;
+          flakes.push(S(A.snowflake(), x + 30 * Math.sin(t * 1.5 + i), y, 54 + (i % 4) * 20, { rot: t * 40 + i * 20, opacity: Math.min(1, t / 0.6) }));
+        }
+        const [a, b] = sh(0), [c, d] = sh(3), [e, f] = sh(7);
+        return [
+          W(eyes({ look: [0, 0.2], blink: E.blinkAt(t, [2.3]) }), 878 + a, 690 + b, 130, { scale: E.pop(t, 0.4) }),
+          W(eyes({ variant: 'shocked', look: [0, 0] }), 958 + c, 905 + d, 125, { scale: E.pop(t, 0.6) }),
+          W(eyes({ look: [0.3, 0], blink: E.blinkAt(t, [3.1]) }), 648 + e, 722 + f, 115, { scale: E.pop(t, 0.8) }),
+          ...flakes,
+          S(A.thermometer(0.55 - 0.45 * E.prog(t, 1.4, 2.2)), 950, 430, 120, { scale: E.pop(t, 1.2) }),
+        ];
+      } },
+    // 7 — punchline: better farmers than me
+    { start: 26, end: 31, img: 'ant', from: { cx: 690, cy: 790, h: 1150 }, to: { cx: 700, cy: 780, h: 1000 },
+      overlays: (t, E) => {
+        const lookCactus = t > 2.4;
+        return [
+          W(eyes({ look: lookCactus ? [0.8, 0.5] : [0, 0], blink: E.blinkAt(t, [1.2, 4.2]) }), 668, 778, 225),
+          W(A.strawHat(), 668, 660, 360, { rot: -10 }),
+          S(A.cactus({ droop: E.inOut(E.prog(t, 3.2, 1.2)) }), 905, 1020, 250, { scale: E.pop(t, 2.3) }),
+        ];
+      } },
+  ],
+  captions: [
+    [0.1, 1.0, 'ANTS INVENTED'], [1.0, 1.7, '*FARMING*...'], [1.7, 2.4, 'MILLIONS OF YEARS'], [2.4, 3.0, 'BEFORE HUMANS DID.'],
+    [3.0, 3.7, 'AND THESE TINY'], [3.7, 4.5, 'GREEN BUGS?'], [4.5, 5.1, "THEY'RE THE"], [5.1, 6.2, '*COWS.*'],
+    [6.2, 7.0, 'WHEN AN ANT'], [7.0, 7.8, 'GETS HUNGRY,'], [7.8, 8.8, 'IT GENTLY STROKES'], [8.8, 9.5, 'THE APHID'], [9.5, 11.0, 'WITH ITS *ANTENNAE*...'],
+    [11.0, 11.7, 'AND THE APHID'], [11.7, 12.4, 'SQUEEZES OUT'], [12.4, 13.0, 'A DROP OF'], [13.0, 14.4, 'SUGARY *HONEYDEW.*'], [14.4, 16.0, '*FRESH MILK!*'],
+    [16.0, 16.6, 'IN RETURN,'], [16.6, 17.5, 'THE ANTS *PROTECT*'], [17.5, 18.4, 'THEIR HERD'], [18.4, 19.4, 'CHASING OFF'], [19.4, 21.0, 'HUNGRY *LADYBUGS.*'],
+    [21.0, 22.1, 'SOME ANTS EVEN KEEP'], [22.1, 23.2, "THEIR COWS' EGGS"], [23.2, 24.3, '*UNDERGROUND*'], [24.3, 26.0, 'ALL *WINTER*...'],
+    [26.0, 26.6, 'MAKING THEM'], [26.6, 27.4, 'BETTER FARMERS'], [27.4, 28.2, 'THAN ME.'], [28.2, 29.2, "I CAN'T EVEN KEEP"], [29.2, 31.0, 'A *CACTUS* ALIVE.'],
+  ],
+};
+
+function guards(t, E, angry) {
+  const g = (x, y, k) => [
+    W(eyes({ variant: angry ? 'angry' : 'normal', look: angry ? [-0.5, 0] : [0, 0.3], blink: angry ? 0 : E.blinkAt(t, [1.6 + k]) }), x, y - 10, 72, { scale: E.pop(t, 0.2 + k * 0.15) }),
+    W(A.spear(), x - 48, y - 40, 28, { scale: E.pop(t, 0.9 + k * 0.2), rot: angry ? -35 : -8 }),
+    W(A.shield(), x + 52, y + 18, 86, { scale: E.pop(t, 1.0 + k * 0.2) }),
+  ];
+  return [...g(1215, 780, 0), ...g(1450, 785, 1)];
+}
+</script>
+<script src="../../engine/runtime.js"></script>
+</body></html>
