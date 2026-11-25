@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>برچسب‌ساز دیجی‌کیوب</title>
+<style>
+@font-face{font-family:"Vazirmatn";font-weight:500;font-display:block;src:url(data:font/woff2;base64,{{FONT_Medium}}) format("woff2")}
+@font-face{font-family:"Vazirmatn";font-weight:800;font-display:block;src:url(data:font/woff2;base64,{{FONT_ExtraBold}}) format("woff2")}
+@font-face{font-family:"Vazirmatn";font-weight:900;font-display:block;src:url(data:font/woff2;base64,{{FONT_Black}}) format("woff2")}
+
+:root{
+  --bg:#f4f4f6; --panel:#ffffff; --ink:#16161a; --muted:#6b6b76; --line:#e3e3e8;
+  --field:#fafafb; --accent:#e8202a; --accent-ink:#ffffff; --accent-soft:#fde8e9;
+  --ok:#1f8a4c; --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121215; --panel:#1c1c21; --ink:#f1f1f4; --muted:#9a9aa6; --line:#2e2e36;
+    --field:#16161a; --accent:#ff3b44; --accent-soft:#3a1c1e; --ok:#3fc47a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121215; --panel:#1c1c21; --ink:#f1f1f4; --muted:#9a9aa6; --line:#2e2e36;
+  --field:#16161a; --accent:#ff3b44; --accent-soft:#3a1c1e; --ok:#3fc47a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Vazirmatn",Tahoma,sans-serif;font-weight:500;font-size:15px;line-height:1.7}
+button,input,textarea,select{font:inherit;color:inherit}
+
+/* ---------- App shell ---------- */
+.app{max-width:1280px;margin:0 auto;padding:20px 16px 48px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:38px;height:38px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:900;font-size:18px}
+.brand h1{font-size:19px;margin:0;font-weight:900}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:420px minmax(0,1fr);gap:18px;align-items:start}
+.grid > *{min-width:0}
+@media (max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.preview-wrap{position:static}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+.card + .card{margin-top:18px}
+.card h2{font-size:16px;margin:0 0 4px;font-weight:900;display:flex;align-items:center;gap:8px}
+.card .hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+.step{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px}
+
+label.f{display:block;margin-top:10px}
+label.f > span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input[type=text],input[type=tel],textarea,select{width:100%;background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 12px;outline:none;transition:border-color .15s, box-shadow .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{resize:vertical;min-height:92px}
+#paste{min-height:130px}
+.ltr{direction:ltr;text-align:left}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;user-select:none}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.field-warn{color:var(--accent);font-size:12px;min-height:0}
+
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:800;display:inline-flex;align-items:center;gap:6px;transition:transform .05s, background .15s}
+.btn:hover{background:var(--field)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.05);background:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+
+.status{margin-top:10px;font-size:13px;color:var(--ok);min-height:22px}
+.status.err{color:var(--accent)}
+
+/* preview */
+.preview-wrap{position:sticky;top:16px}
+.preview-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.stage{background:repeating-conic-gradient(var(--field) 0 25%, var(--panel) 0 50%) 0 0/18px 18px;border:1px solid var(--line);border-radius:12px;padding:14px;overflow:hidden}
+.stage-inner{width:100%;overflow:hidden}
+.stage .label{box-shadow:0 6px 24px rgba(0,0,0,.18)}
+
+/* queue */
+.queue-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.q{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--field)}
+.q .n{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:900;font-size:13px;flex:none}
+.q .meta{flex:1;min-width:0}
+.q .meta b{display:block;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.q .meta small{color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.q .acts{display:flex;gap:4px;flex:none}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:16px;border:1px dashed var(--line);border-radius:12px;margin-top:10px}
+details.settings summary{cursor:pointer;font-weight:900;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.settings summary::-webkit-details-marker{display:none}
+details.settings summary::after{content:"▾";color:var(--muted)}
+details.settings[open] summary::after{content:"▴"}
+dialog{border:none;border-radius:16px;padding:0;width:min(640px,calc(100vw - 32px));background:var(--panel);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog .dbody{padding:18px}
+#bulkText{min-height:260px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}.top{flex-wrap:wrap}}
+
+/* ---------- The label (design size 1000 x 794 px) ---------- */
+.label{
+  width:1000px;height:794px;background:#fff;color:#000;border:9px solid #000;
+  display:grid;grid-template-rows:1fr 96px;font-family:"Vazirmatn",Tahoma,sans-serif;
+  font-weight:900;direction:rtl;line-height:1.45;position:relative;overflow:hidden;
+}
+.label .main{display:grid;grid-template-columns:1fr 1fr;border-bottom:7px solid #000;min-height:0}
+.label .col{display:flex;flex-direction:column;min-height:0;min-width:0;padding:0 20px 14px}
+.label .col.rcv{border-left:7px solid #000}
+.label .head{height:126px;display:flex;align-items:center;justify-content:center;flex:none}
+.label .head h3{margin:0;font-size:54px;font-weight:900;letter-spacing:0;line-height:1}
+.label .head img{height:84px;width:auto;display:block}
+.label .rule{height:5px;background:#000;margin:0 6px 0;flex:none}
+.label .body{flex:1;display:flex;flex-direction:column;min-height:0;padding-top:30px}
+.label p{margin:0}
+.label .rcv .info{font-size:calc(23px * var(--fs,1))}
+.label .rcv .info p + p{margin-top:calc(26px * var(--fs,1))}
+.label .rcv .addr{line-height:1.55}
+.label .snd .info{font-size:calc(22px * var(--fs,1))}
+.label .snd .info p + p{margin-top:calc(22px * var(--fs,1))}
+.label .num{direction:ltr;unicode-bidi:isolate;letter-spacing:.5px}
+.label .big{font-size:26px}
+.label .bottom{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding-top:10px}
+.label .bottom .side{flex:1;display:flex;flex-direction:column;gap:18px;min-width:0}
+.label .badge{width:156px;flex:none;border-radius:14px;overflow:hidden;display:block}
+.label .badge img{width:100%;display:block}
+.label .rcv .side{align-items:center;padding-bottom:12px}
+.label .rcv .side .postal{align-self:flex-start;font-size:23px}
+.label .dq{width:200px;display:block}
+.label .snd .side p{font-size:20px}
+.label .code{color:#f0204e;font-size:34px;text-align:center;direction:ltr;margin-top:6px;letter-spacing:.5px;line-height:1.2}
+.label .foot{display:flex;align-items:center;justify-content:center;gap:12px;font-size:40px;line-height:1}
+.label .foot .num{letter-spacing:0}
+.label .ph{color:#b9b9b9}
+
+/* ---------- Print ---------- */
+#printArea{display:none}
+@media print{
+  body{background:#fff}
+  .app,dialog{display:none !important}
+  #printArea{display:block}
+  .sheet{break-after:page;page-break-after:always;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4mm;overflow:hidden}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
+  .sheet .label{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">DQ</div>
+      <div>
+        <h1>برچسب‌ساز سفارش</h1>
+        <p>پیام مشتری را بچسبانید، برچسب آماده است.</p>
+      </div>
+    </div>
+    <button class="btn ghost sm" id="bulkOpen" type="button">📋 چند سفارش با هم</button>
+  </header>
+
+  <div class="grid">
+    <div>
+      <section class="card">
+        <h2><span class="step">۱</span> متن سفارش را بچسبانید</h2>
+        <p class="hint">همان پیامی که مشتری در دایرکت یا واتساپ فرستاده (با هر ترتیبی). نام، آدرس، تلفن و کدپستی خودکار جدا می‌شوند.</p>
+        <textarea id="paste" placeholder="مثال:
+محمد رضایی
+تهران، خیابان آزادی، کوچه ۱۲، پلاک ۴
+۰۹۱۲۱۲۳۴۵۶۷
+کدپستی: ۱۴۵۶۷۸۹۱۲۳"></textarea>
+        <div class="btns">
+          <button class="btn primary" id="parseBtn" type="button">✨ پر کردن خودکار</button>
+          <button class="btn" id="pasteClip" type="button">📥 چسباندن از کلیپ‌بورد</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">۲</span> اطلاعات گیرنده</h2>
+        <p class="hint">اگر چیزی اشتباه تشخیص داده شد، همین‌جا درستش کنید.</p>
+        <label class="f"><span>نام گیرنده</span><input type="text" id="r_name" autocomplete="off"></label>
+        <label class="f"><span>آدرس</span><textarea id="r_address" rows="3"></textarea></label>
+        <div class="row2">
+          <label class="f"><span>تلفن</span><input type="tel" id="r_phone" class="ltr" inputmode="numeric" autocomplete="off"><small class="field-warn" id="w_phone"></small></label>
+          <label class="f"><span>کدپستی</span><input type="text" id="r_postal" class="ltr" inputmode="numeric" autocomplete="off"><small class="field-warn" id="w_postal"></small></label>
+        </div>
+        <label class="f"><span>کد قرمز پایین برچسب (مثلاً کد سفارش)</span><input type="text" id="r_code" class="ltr" autocomplete="off"></label>
+        <label class="check"><input type="checkbox" id="r_fragile" checked> علامت «احتیاط! کالای شکستنی»</label>
+
+        <div class="btns">
+          <button class="btn primary" id="printOne" type="button">🖨️ چاپ</button>
+          <button class="btn" id="pngOne" type="button">🖼️ دانلود عکس</button>
+          <button class="btn" id="addQueue" type="button">➕ به لیست امروز</button>
+          <button class="btn ghost" id="clearForm" type="button">پاک کردن</button>
+        </div>
+        <div class="status" id="status" role="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>📦 لیست ارسال امروز <span id="qCount" style="color:var(--muted);font-weight:500"></span></h2>
+        <p class="hint">سفارش‌ها را جمع کنید و آخر کار همه را یک‌جا چاپ کنید (روی این دستگاه ذخیره می‌شود).</p>
+        <ul class="queue-list" id="queue"></ul>
+        <div class="btns">
+          <button class="btn primary" id="printAll" type="button">🖨️ چاپ همه</button>
+          <button class="btn" id="pngAll" type="button">🖼️ دانلود عکس همه</button>
+          <button class="btn ghost" id="clearQueue" type="button">خالی کردن لیست</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <details class="settings">
+          <summary>⚙️ تنظیمات فرستنده و چاپ</summary>
+          <p class="hint" style="margin-top:8px">فقط یک بار لازم است؛ روی همین دستگاه ذخیره می‌شود.</p>
+          <label class="f"><span>اندازه کاغذ چاپ</span>
+            <select id="paper">
+              <option value="a5">A5 افقی — یک برچسب در هر صفحه</option>
+              <option value="a4">A4 عمودی — دو برچسب در هر صفحه</option>
+              <option value="a4l">A4 افقی — یک برچسب بزرگ</option>
+              <option value="a6">A6 افقی — برچسب کوچک</option>
+            </select>
+          </label>
+          <label class="f"><span>نام فرستنده</span><input type="text" id="s_name"></label>
+          <label class="f"><span>آدرس فرستنده</span><textarea id="s_address" rows="2"></textarea></label>
+          <div class="row2">
+            <label class="f"><span>تلفن</span><input type="text" id="s_phone" class="ltr"></label>
+            <label class="f"><span>کد پستی</span><input type="text" id="s_postal" class="ltr"></label>
+          </div>
+          <div class="row2">
+            <label class="f"><span>ایمیل</span><input type="text" id="s_email" class="ltr"></label>
+            <label class="f"><span>اینستاگرام</span><input type="text" id="s_insta" class="ltr"></label>
+          </div>
+          <label class="f"><span>آدرس سایت</span><input type="text" id="s_site" class="ltr"></label>
+          <div class="btns"><button class="btn ghost sm" id="resetSender" type="button">بازگشت به اطلاعات پیش‌فرض</button></div>
+        </details>
+      </section>
+    </div>
+
+    <div class="preview-wrap">
+      <section class="card">
+        <div class="preview-head">
+          <h2 style="margin:0">👁️ پیش‌نمایش برچسب</h2>
+          <span class="hint" style="margin:0" id="fitNote"></span>
+        </div>
+        <div class="stage"><div class="stage-inner" id="stage"></div></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<dialog id="bulkDlg">
+  <div class="dbody">
+    <h2 style="margin:0 0 4px;font-weight:900;font-size:17px">📋 چند سفارش با هم</h2>
+    <p class="hint">چند پیام سفارش را پشت سر هم بچسبانید. بین هر سفارش یک خط خالی یا <b>---</b> بگذارید. همه به «لیست ارسال امروز» اضافه می‌شوند.</p>
+    <textarea id="bulkText" placeholder="سفارش اول...
+
+---
+
+سفارش دوم..."></textarea>
+    <div class="btns">
+      <button class="btn primary" id="bulkGo" type="button">افزودن به لیست</button>
+      <button class="btn ghost" id="bulkClose" type="button">بستن</button>
+    </div>
+  </div>
+</dialog>
+
+<div id="printArea"></div>
+<div id="exportHost" style="position:fixed;left:-20000px;top:0;pointer-events:none" aria-hidden="true"></div>
+<style id="pageStyle"></style>
+
+<script>{{LIB}}</script>
+<script>
+(function(){
+"use strict";
+const IMG = {
+  header: "data:image/jpeg;base64,{{IMG_header}}",
+  qr: "data:image/jpeg;base64,{{IMG_qr}}",
+  fragile: "data:image/jpeg;base64,{{IMG_fragile}}",
+  dq: "data:image/jpeg;base64,{{IMG_digiqube}}"
+};
+const DEFAULT_SENDER = {
+  name: "فروشگاه دیجی کیوب",
+  address: "تهران - میدان توحید - ستارخان - صیامی - پلاک 22",
+  phone: "09037084354",
+  email: "info@digiqube.ir",
+  insta: "digiqub_ir",
+  postal: "1441685141",
+  site: "www.digiqube.ir"
+};
+const $ = id => document.getElementById(id);
+
+/* ---------- storage (optional, never required) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("dq_label_" + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("dq_label_" + k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- text helpers ---------- */
+const FA = "۰۱۲۳۴۵۶۷۸۹", AR = "٠١٢٣٤٥٦٧٨٩";
+function normDigits(s){ return String(s||"").replace(/[۰-۹]/g, d => FA.indexOf(d)).replace(/[٠-٩]/g, d => AR.indexOf(d)); }
+function normText(s){
+  return normDigits(s).replace(/ي/g,"ی").replace(/ى/g,"ی").replace(/ك/g,"ک").replace(/ۀ/g,"ه")
+    .replace(/\r/g,"").replace(/[‎‏‪-‮]/g,"");
+}
+function esc(s){ return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function onlyDigits(s){ return normDigits(s).replace(/\D/g,""); }
+function cleanPhone(s){
+  let d = onlyDigits(s);
+  if (d.startsWith("0098")) d = "0" + d.slice(4);
+  else if (d.startsWith("98") && d.length === 12) d = "0" + d.slice(2);
+  else if (d.length === 10 && d[0] === "9") d = "0" + d;
+  return d;
+}
+
+/* ---------- order parser ---------- */
+const PROVINCES = ["تهران","البرز","کرج","اصفهان","فارس","شیراز","خراسان رضوی","خراسان شمالی","خراسان جنوبی","مشهد","خوزستان","اهواز","آذربایجان شرقی","آذربایجان غربی","تبریز","ارومیه","اردبیل","کرمانشاه","کرمان","گیلان","رشت","مازندران","ساری","گلستان","گرگان","قم","قزوین","زنجان","همدان","مرکزی","اراک","لرستان","خرم آباد","خرم‌آباد","ایلام","کردستان","سنندج","کهگیلویه","یاسوج","چهارمحال","شهرکرد","بوشهر","هرمزگان","بندرعباس","سیستان","زاهدان","یزد","سمنان","استان","شهرستان"];
+const ADDR_WORDS = /(استان|شهر|شهرستان|خیابان|خ\.|کوچه|ک\.|بلوار|بلوک|پلاک|میدان|م\.|واحد|طبقه|بن ?بست|بن‌بست|محله|روستا|جاده|بزرگراه|کوی|شهرک|فاز|خیابان|نبش|جنب|روبرو|روبه‌روی|مجتمع|برج|ساختمان|آپارتمان|منزل|کیلومتر|بخش|دهستان|انتهای|ابتدای|سه ?راه|چهارراه|تقاطع)/;
+const KEY_RE = [
+  ["postal", /^(?:کد\s*پستی|کدپستی|كدپستي)\s*[:：\-–=]?\s*/],
+  ["phone", /^(?:شماره\s*(?:تماس|تلفن|موبایل|همراه|تلفن همراه)?|تلفن(?:\s*همراه)?|موبایل|همراه|تماس|تلفن تماس)\s*[:：\-–=]?\s*/],
+  ["address", /^(?:آدرس|ادرس|نشانی)(?:\s*(?:کامل|پستی|دقیق|گیرنده))?\s*[:：\-–=]?\s*/],
+  ["name", /^(?:نام\s*و\s*نام\s*خانوادگی|نام\s*و\s*فامیل|نام\s*گیرنده|نام|اسم|گیرنده|تحویل\s*گیرنده)\s*[:：\-–=]?\s*/],
+  ["skip", /^(?:کد\s*سفارش|شماره\s*سفارش|سفارش|محصول|کالا|تعداد|مبلغ|قیمت|توضیحات|سلام|درود|وقت\s*بخیر|ممنون|مرسی|لطفا|لطفاً|خسته\s*نباشید)(?=$|[\s،,:.!؟?])/]
+];
+const STRIP_LEAD = /^(?:[\s•▪▫●‣⁃\-\*•·>#]+|\d{1,2}[.)]\s+)+/;
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{20E3}\u{2190}-\u{21FF}]/gu;
+
+function parseOrder(raw){
+  const out = { name:"", address:"", phone:"", postal:"" };
+  let text = normText(raw).replace(EMOJI, " ");
+  // break inline "key: value key: value" into lines
+  text = text.replace(/[ \t,،]+(?=(?:نام|آدرس|ادرس|نشانی|تلفن|موبایل|شماره\s*(?:تماس|تلفن|موبایل|همراه)|کد\s*پستی|کدپستی)\s*[:：])/g, "\n");
+  const lines = text.split("\n").map(l => l.replace(/\s+/g," ").trim()).filter(Boolean);
+  const addr = [], loose = [];
+
+  function takeNumbers(str){
+    // pull phone / postal numbers out of a free line, return the rest
+    str = str.replace(/(?<!\d)(?:\+?98[\s\-]?|0098[\s\-]?|0)?9\d{2}[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}(?!\d)/g, m => {
+      if (out.phone) return m;
+      out.phone = cleanPhone(m); return " ";
+    });
+    str = str.replace(/(?<!\d)\d{5}[\s\-]?\d{5}(?!\d)/g, m => {
+      const d = onlyDigits(m);
+      if (out.postal || d[0] === "0") return m;
+      out.postal = d; return " ";
+    });
+    str = str.replace(/(?<!\d)0\d{2,3}[\s\-]?\d{7,8}(?!\d)/g, m => {
+      const d = onlyDigits(m);
+      if (out.phone || d.length !== 11) return m;
+      out.phone = d; return " ";
+    });
+    return str.replace(/\s+/g," ").replace(/^[\s:،,\-]+|[\s:،,\-]+$/g,"").trim();
+  }
+
+  for (let line of lines){
+    line = line.replace(STRIP_LEAD, "").trim();
+    if (!line) continue;
+    let key = null, val = line;
+    for (const [k, re] of KEY_RE){ if (re.test(line)){ key = k; val = line.replace(re, "").trim(); break; } }
+    if (key === "skip") continue;
+    if (key === "postal"){ const d = onlyDigits(val); if (d.length >= 10){ out.postal = d.slice(0,10); continue; } }
+    if (key === "phone"){ const p = cleanPhone(val); if (p.length >= 10){ out.phone = out.phone || p; continue; } }
+    if (key === "name"){ val = takeNumbers(val); if (val){ out.name = val; } continue; }
+    if (key === "address"){ val = takeNumbers(val); if (val) addr.push(val); continue; }
+    // free line
+    const rest = takeNumbers(val);
+    if (!rest) continue;
+    loose.push(rest);
+  }
+
+  for (const l of loose){
+    const words = l.split(" ").length;
+    const looksAddr = ADDR_WORDS.test(l) || PROVINCES.some(p => l.startsWith(p)) || /\d/.test(l) || words > 6;
+    if (!out.name && !looksAddr && words <= 5 && addr.length === 0) { out.name = l; continue; }
+    if (!out.name && !looksAddr && words <= 5 && addr.length > 0) { out.name = l; continue; }
+    addr.push(l);
+  }
+  out.address = addr.join("، ").replace(/\s*،\s*،/g,"،").replace(/^[،,\s]+|[،,\s]+$/g,"");
+
+  // one-line message: "Ali Rezaei Tehran, street..." → split name before the province/city
+  if (!out.name && out.address){
+    let best = -1;
+    for (const p of PROVINCES){
+      const i = out.address.indexOf(p);
+      if (i > 0 && (best === -1 || i < best)) best = i;
+    }
+    if (best > 0){
+      const head = out.address.slice(0, best).replace(/[،,\-:\s]+$/,"").trim();
+      const wc = head.split(" ").length;
+      if (head && wc >= 2 && wc <= 5 && !/\d/.test(head) && !ADDR_WORDS.test(head)){
+        out.name = head;
+        out.address = out.address.slice(best).trim();
+      }
+    }
+  }
+  return out;
+}
+
+function splitOrders(raw){
+  const text = normText(raw).trim();
+  if (!text) return [];
+  let parts = text.split(/\n\s*(?:-{3,}|={3,}|\*{3,}|_{3,}|#{3,})\s*\n/);
+  if (parts.length === 1){
+    const chunks = text.split(/\n\s*\n/);
+    parts = [];
+    for (const c of chunks){
+      const hasPhone = /(?:\+?98|0)?9\d{9}/.test(onlyDigits(c).length ? c.replace(/[\s\-]/g,"") : "");
+      if (!hasPhone && parts.length) parts[parts.length-1] += "\n" + c;
+      else parts.push(c);
+    }
+    // a chunk with no phone at the very start belongs to the next one
+    for (let i = 0; i < parts.length - 1; i++){
+      if (!/9\d{9}/.test(parts[i].replace(/[\s\-]/g,""))){ parts[i+1] = parts[i] + "\n" + parts[i+1]; parts.splice(i,1); i--; }
+    }
+  }
+  return parts.map(p => p.trim()).filter(Boolean).map(parseOrder).filter(o => o.name || o.address || o.phone);
+}
+
+/* ---------- label renderer ---------- */
+function labelHTML(r, s){
+  const ph = (v, p) => v ? esc(v) : `<span class="ph">${p}</span>`;
+  return `
+  <div class="label">
+    <div class="main">
+      <div class="col rcv">
+        <div class="head"><h3>اطلاعات گیرنده</h3></div>
+        <div class="rule"></div>
+        <div class="body">
+          <div class="info">
+            <p>نام: ${ph(r.name, "نام گیرنده")}</p>
+            <p class="addr">آدرس🏠: ${ph(r.address, "آدرس گیرنده")}</p>
+            <p class="big">تلفن☎️: <span class="num">${ph(r.phone, "09xxxxxxxxx")}</span></p>
+          </div>
+          <div class="bottom">
+            ${r.fragile !== false ? `<div class="badge"><img src="${IMG.fragile}" alt=""></div>` : ""}
+            <div class="side">
+              <p class="postal">کدپستی📪: <span class="num">${ph(r.postal, "xxxxxxxxxx")}</span></p>
+              <img class="dq" src="${IMG.dq}" alt="digiqube">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col snd">
+        <div class="head"><img src="${IMG.header}" alt="دیجی کیوب"></div>
+        <div class="rule"></div>
+        <div class="body">
+          <div class="info">
+            <p>نام : ${esc(s.name)}</p>
+            <p>آدرس: ${esc(s.address)}</p>
+          </div>
+          <div class="bottom">
+            <div class="badge"><img src="${IMG.qr}" alt=""></div>
+            <div class="side">
+              <p>تلفن ☎️ : <span class="num">${esc(s.phone)}</span></p>
+              <p>ایمیل <span class="num">${esc(s.email)}</span></p>
+              <p>آدرس اینستاگرام: <span class="num">${esc(s.insta)}</span></p>
+              <p>کد پستی📪 : <span class="num">${esc(s.postal)}</span></p>
+              ${r.code ? `<p class="code">${esc(r.code)}</p>` : ""}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">آدرس سایت : <span class="num">${esc(s.site)}</span></div>
+  </div>`;
+}
+
+// shrink recipient text if a long address would overflow
+function fit(labelEl){
+  let shrunk = false;
+  labelEl.querySelectorAll(".body").forEach(body => {
+    const info = body.querySelector(".info");
+    let fs = 1;
+    info.style.setProperty("--fs", fs);
+    const bottom = body.querySelector(".bottom");
+    const over = () => info.offsetHeight + bottom.offsetHeight + 30 + 8 > body.clientHeight;
+    while (over() && fs > 0.55){
+      fs -= 0.04; info.style.setProperty("--fs", fs.toFixed(2)); shrunk = true;
+    }
+  });
+  return shrunk;
+}
+
+/* ---------- state ---------- */
+let sender = Object.assign({}, DEFAULT_SENDER, store.get("sender", {}));
+let queue = store.get("queue", []);
+let editingId = null;
+const F = { name:$("r_name"), address:$("r_address"), phone:$("r_phone"), postal:$("r_postal"), code:$("r_code"), fragile:$("r_fragile") };
+const S = { name:$("s_name"), address:$("s_address"), phone:$("s_phone"), postal:$("s_postal"), email:$("s_email"), insta:$("s_insta"), site:$("s_site") };
+
+function readForm(){
+  return { name:F.name.value.trim(), address:F.address.value.trim(), phone:normDigits(F.phone.value.trim()),
+           postal:normDigits(F.postal.value.trim()), code:normDigits(F.code.value.trim()), fragile:F.fragile.checked };
+}
+function writeForm(o){
+  F.name.value = o.name || ""; F.address.value = o.address || ""; F.phone.value = o.phone || "";
+  F.postal.value = o.postal || ""; if (o.code !== undefined) F.code.value = o.code || "";
+  if (o.fragile !== undefined) F.fragile.checked = o.fragile !== false;
+}
+function validate(r){
+  $("w_phone").textContent = r.phone && !/^0\d{10}$/.test(onlyDigits(r.phone)) ? "شماره باید ۱۱ رقم باشد" : "";
+  $("w_postal").textContent = r.postal && !/^\d{10}$/.test(onlyDigits(r.postal)) ? "کدپستی باید ۱۰ رقم باشد" : "";
+}
+
+/* ---------- preview ---------- */
+const stage = $("stage");
+function renderPreview(){
+  const r = readForm();
+  validate(r);
+  stage.innerHTML = labelHTML(r, sender);
+  const el = stage.firstElementChild;
+  const shrunk = fit(el);
+  scalePreview();
+  $("fitNote").textContent = shrunk ? "آدرس طولانی بود؛ متن کمی کوچک شد تا جا شود." : "";
+}
+function scalePreview(){
+  const el = stage.firstElementChild; if (!el) return;
+  const w = stage.clientWidth;
+  el.style.zoom = (w / 1000).toFixed(4);
+}
+new ResizeObserver(scalePreview).observe(stage);
+
+let t;
+function schedule(){ clearTimeout(t); t = setTimeout(() => { renderPreview(); store.set("draft", readForm()); }, 80); }
+Object.values(F).forEach(el => el.addEventListener("input", schedule));
+F.fragile.addEventListener("change", schedule);
+
+/* ---------- parse ---------- */
+function status(msg, err){ const s = $("status"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); clearTimeout(status.t); status.t = setTimeout(() => s.textContent = "", 5000); }
+function doParse(){
+  const raw = $("paste").value;
+  if (!raw.trim()){ status("اول متن سفارش را بچسبانید.", true); return; }
+  const o = parseOrder(raw);
+  writeForm(o);
+  renderPreview(); store.set("draft", readForm());
+  const missing = [];
+  if (!o.name) missing.push("نام"); if (!o.address) missing.push("آدرس");
+  if (!o.phone) missing.push("تلفن"); if (!o.postal) missing.push("کدپستی");
+  status(missing.length ? "پر شد. این‌ها پیدا نشد، دستی وارد کنید: " + missing.join("، ") : "✓ همه اطلاعات پر شد. یک نگاه به پیش‌نمایش بیندازید.", missing.length > 0);
+}
+$("parseBtn").onclick = doParse;
+$("paste").addEventListener("paste", () => setTimeout(doParse, 30));
+$("pasteClip").onclick = async () => {
+  try { const txt = await navigator.clipboard.readText(); $("paste").value = txt; doParse(); }
+  catch(e){ status("مرورگر اجازه خواندن کلیپ‌بورد نداد؛ داخل کادر بالا نگه دارید و Paste بزنید.", true); }
+};
+
+/* ---------- print ---------- */
+const PAPER = {
+  a5:  { page:"A5 landscape", w:210, h:148, per:1 },
+  a4:  { page:"A4 portrait",  w:210, h:297, per:2 },
+  a4l: { page:"A4 landscape", w:297, h:210, per:1 },
+  a6:  { page:"A6 landscape", w:148, h:105, per:1 }
+};
+function printLabels(list){
+  const p = PAPER[$("paper").value] || PAPER.a5;
+  const margin = 6, gap = 4;
+  const availW = p.w - margin*2, availH = (p.h - margin*2 - gap*(p.per-1)) / p.per;
+  const wmm = Math.min(availW, availH * 1000/794);
+  const zoom = (wmm * 3.7795 / 1000).toFixed(4);
+  $("pageStyle").textContent = `@page{size:${p.page};margin:${margin}mm}@media print{.sheet{height:${(p.h - margin*2 - 0.5)}mm}}`;
+  const area = $("printArea");
+  let html = "";
+  for (let i = 0; i < list.length; i += p.per){
+    html += `<div class="sheet">` + list.slice(i, i + p.per).map(r => labelHTML(r, sender)).join("") + `</div>`;
+  }
+  area.innerHTML = html;
+  area.style.display = "block"; area.style.position = "absolute"; area.style.left = "-20000px";
+  area.querySelectorAll(".label").forEach(l => fit(l));
+  area.querySelectorAll(".label").forEach(l => l.style.zoom = zoom);
+  area.removeAttribute("style");
+  setTimeout(() => window.print(), 60);
+}
+$("printOne").onclick = () => { const r = readForm(); if (!r.name && !r.address){ status("اطلاعات گیرنده خالی است.", true); return; } printLabels([r]); };
+$("printAll").onclick = () => { if (!queue.length){ status("لیست امروز خالی است.", true); return; } printLabels(queue); };
+
+/* ---------- PNG export ---------- */
+async function labelToPng(r){
+  const host = $("exportHost");
+  host.innerHTML = labelHTML(r, sender);
+  const el = host.firstElementChild;
+  fit(el);
+  await document.fonts.ready;
+  await Promise.all([...el.querySelectorAll("img")].map(img => img.decode ? img.decode().catch(()=>{}) : null));
+  const url = await htmlToImage.toPng(el, { pixelRatio: 2.6, backgroundColor: "#ffffff", cacheBust: false });
+  host.innerHTML = "";
+  return url;
+}
+function fileName(r, i){
+  const base = (r.name || "label").replace(/[\\/:*?"<>|]+/g,"").replace(/\s+/g,"-").slice(0, 40);
+  return `${i != null ? (i+1) + "-" : ""}${base}.png`;
+}
+function download(url, name){ const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+$("pngOne").onclick = async () => {
+  const r = readForm();
+  if (!r.name && !r.address){ status("اطلاعات گیرنده خالی است.", true); return; }
+  const b = $("pngOne"); b.disabled = true;
+  try { download(await labelToPng(r), fileName(r)); status("✓ عکس برچسب دانلود شد."); }
+  catch(e){ status("ساخت عکس انجام نشد: " + e.message, true); }
+  b.disabled = false;
+};
+$("pngAll").onclick = async () => {
+  if (!queue.length){ status("لیست امروز خالی است.", true); return; }
+  const b = $("pngAll"); b.disabled = true;
+  try {
+    for (let i = 0; i < queue.length; i++){ download(await labelToPng(queue[i]), fileName(queue[i], i)); await new Promise(r => setTimeout(r, 350)); }
+    status(`✓ ${queue.length} عکس دانلود شد.`);
+  } catch(e){ status("ساخت عکس انجام نشد: " + e.message, true); }
+  b.disabled = false;
+};
+
+/* ---------- queue ---------- */
+function saveQueue(){ store.set("queue", queue); renderQueue(); }
+function renderQueue(){
+  const ul = $("queue");
+  $("qCount").textContent = queue.length ? `(${queue.length.toLocaleString("fa-IR")})` : "";
+  if (!queue.length){ ul.innerHTML = `<li class="empty">هنوز سفارشی اضافه نشده.</li>`; return; }
+  ul.innerHTML = queue.map((q, i) => `
+    <li class="q" data-id="${q.id}">
+      <span class="n">${(i+1).toLocaleString("fa-IR")}</span>
+      <div class="meta"><b>${esc(q.name || "بدون نام")}</b><small>${esc(q.phone || "")} · ${esc(q.address || "")}</small></div>
+      <div class="acts">
+        <button class="btn sm" data-act="edit" type="button" title="ویرایش">✏️</button>
+        <button class="btn sm" data-act="del" type="button" title="حذف">🗑️</button>
+      </div>
+    </li>`).join("");
+}
+$("queue").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-act]"); if (!btn) return;
+  const id = btn.closest(".q").dataset.id;
+  const idx = queue.findIndex(q => q.id === id);
+  if (idx < 0) return;
+  if (btn.dataset.act === "del"){ queue.splice(idx, 1); saveQueue(); return; }
+  editingId = id; writeForm(queue[idx]); renderPreview();
+  $("addQueue").textContent = "💾 ذخیره تغییرات";
+  status("سفارش برای ویرایش باز شد.");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+$("addQueue").onclick = () => {
+  const r = readForm();
+  if (!r.name && !r.address){ status("اطلاعات گیرنده خالی است.", true); return; }
+  if (editingId){
+    const i = queue.findIndex(q => q.id === editingId);
+    if (i >= 0) queue[i] = Object.assign({ id: editingId }, r);
+    editingId = null; $("addQueue").textContent = "➕ به لیست امروز";
+    status("✓ تغییرات ذخیره شد.");
+  } else { queue.push(Object.assign({ id: uid() }, r)); status("✓ به لیست امروز اضافه شد."); }
+  saveQueue(); clearForm(true);
+};
+$("clearQueue").onclick = () => { if (queue.length && confirm("همه سفارش‌های لیست پاک شوند؟")){ queue = []; saveQueue(); } };
+function clearForm(keepCode){
+  const code = F.code.value, frag = F.fragile.checked;
+  writeForm({ name:"", address:"", phone:"", postal:"", code: keepCode ? code : "", fragile: frag });
+  $("paste").value = ""; editingId = null; $("addQueue").textContent = "➕ به لیست امروز";
+  renderPreview(); store.set("draft", readForm());
+}
+$("clearForm").onclick = () => clearForm(false);
+
+/* ---------- bulk ---------- */
+const dlg = $("bulkDlg");
+$("bulkOpen").onclick = () => { dlg.showModal(); $("bulkText").focus(); };
+$("bulkClose").onclick = () => dlg.close();
+$("bulkGo").onclick = () => {
+  const code = F.code.value.trim(), frag = F.fragile.checked;
+  const list = splitOrders($("bulkText").value);
+  if (!list.length){ alert("سفارشی پیدا نشد."); return; }
+  list.forEach(o => queue.push(Object.assign({ id: uid(), code, fragile: frag }, o)));
+  saveQueue(); dlg.close(); $("bulkText").value = "";
+  const incomplete = list.filter(o => !o.name || !o.address || !o.phone || !o.postal).length;
+  status(`✓ ${list.length.toLocaleString("fa-IR")} سفارش اضافه شد.` + (incomplete ? ` ${incomplete.toLocaleString("fa-IR")} مورد ناقص است؛ با ✏️ بررسی کنید.` : ""), incomplete > 0);
+};
+
+/* ---------- sender settings ---------- */
+function fillSender(){ for (const k in S) S[k].value = sender[k] || ""; }
+for (const k in S) S[k].addEventListener("input", () => { sender[k] = S[k].value; store.set("sender", sender); schedule(); });
+$("resetSender").onclick = () => { sender = Object.assign({}, DEFAULT_SENDER); store.set("sender", {}); fillSender(); renderPreview(); };
+$("paper").value = store.get("paper", "a5");
+$("paper").addEventListener("change", () => store.set("paper", $("paper").value));
+
+/* ---------- init ---------- */
+fillSender();
+const draft = store.get("draft", null);
+if (draft) writeForm(draft);
+renderQueue();
+document.fonts.ready.then(renderPreview);
+renderPreview();
+
+// exposed for testing
+window.__dq = { parseOrder, splitOrders };
+})();
+</script>
+</body>
+</html>
